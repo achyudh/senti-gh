@@ -14,6 +14,7 @@ app.config['SESSION_TYPE'] = 'mongodb'
 
 def rate_reset_wait(headers):
     if headers['X-RateLimit-Remaining'] <= 0:
+        print("Wait for %d minutes..." % (headers['X-RateLimit-Reset'] - time.time()//60))
         time.sleep(headers['X-RateLimit-Reset'] - time.time() + 1)
         return "RateLimit Reset"
     else:
@@ -31,4 +32,29 @@ def generic(request_url):
 
 def commits(full_repo_name):
     request_url = 'https://api.github.com/repos/%s/commits' % full_repo_name
+    return generic(request_url)
+
+
+def pull_requests(full_repo_name):
+    request_url = 'https://api.github.com/repos/%s/pulls' % full_repo_name
+    return generic(request_url)
+
+
+def issues(full_repo_name):
+    request_url = 'https://api.github.com/repos/%s/issues' % full_repo_name
+    return generic(request_url)
+
+
+def commit_comments(full_repo_name):
+    request_url = 'https://api.github.com/repos/%s/comments' % full_repo_name
+    return generic(request_url)
+
+
+def review_comments(full_repo_name, issue_number):
+    request_url = 'https://api.github.com/repos/%s/issues/%s/comments' % full_repo_name, issue_number
+    return generic(request_url)
+
+
+def issue_comments(full_repo_name, issue_number):
+    request_url = 'https://api.github.com/repos/%s/issues/%s/comments' % full_repo_name, issue_number
     return generic(request_url)
