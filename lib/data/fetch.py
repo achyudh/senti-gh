@@ -9,7 +9,6 @@ app = Flask(__name__)
 http_auth_username = client_config['HTTP_AUTH_USERNAME']
 http_auth_secret = client_config['HTTP_AUTH_SECRET']
 http_auth = HTTPBasicAuth(http_auth_username, http_auth_secret)
-app.config['SESSION_TYPE'] = 'mongodb'
 
 # Header to get reactions along with comments
 reactions_header = {'Accept': 'application/vnd.github.squirrel-girl-preview'}
