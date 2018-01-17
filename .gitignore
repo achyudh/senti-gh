@@ -4,3 +4,5 @@
 config\.json
 
 data/repo_reaper/dataset\.csv
+
+*.pyc

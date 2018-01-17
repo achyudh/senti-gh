@@ -1,4 +1,4 @@
-from lib.data import fetch, select
+from lib.data import fetch
 from lib.util import db
 
 
@@ -25,23 +25,25 @@ def by_user(full_repo_name):
     db.insert(repo_data, 'data/repo/%s.json' % full_repo_name)
     # Collate user data
     for issue in repo_data['issues']:
-        if user_data.get(issue['user']['login'], None) is None:
-            init_user_data(user_data, issue['user']['login'])
-        text_obj = dict()
-        text_obj['url'] = issue['url']
-        text_obj['title'] = issue['title']
-        text_obj['body'] = issue['body']
-        text_obj['reactions'] = issue['reactions']
-        text_obj['author_association'] = issue['author_association']
-        user_data[issue['user']['login']]['issues'].append(text_obj)
+        if 'pull_request' not in issue:
+            if user_data.get(issue['user']['login'], None) is None:
+                init_user_data(user_data, issue['user']['login'])
+            text_obj = dict()
+            text_obj['url'] = issue['url']
+            text_obj['title'] = issue['title']
+            text_obj['body'] = issue['body']
+            text_obj['reactions'] = issue['reactions']
+            text_obj['author_association'] = issue['author_association']
+            user_data[issue['user']['login']]['issues'].append(text_obj)
 
-    for commit in repo_data['commit']:
-        if user_data.get(commit['author']['login'], None) is None:
-            init_user_data(user_data, commit['author']['login'])
-        text_obj = dict()
-        text_obj['url'] = commit['url']
-        text_obj['message'] = commit['commit']['message']
-        user_data[commit['author']['login']]['commits'].append(text_obj)
+    for commit in repo_data['commits']:
+        if commit['author'] is not None:
+            if user_data.get(commit['author']['login'], None) is None:
+                init_user_data(user_data, commit['author']['login'])
+            text_obj = dict()
+            text_obj['url'] = commit['url']
+            text_obj['message'] = commit['commit']['message']
+            user_data[commit['author']['login']]['commits'].append(text_obj)
 
     for pull_request in repo_data['pull_requests']:
         if user_data.get(pull_request['user']['login'], None) is None:
