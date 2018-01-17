@@ -11,7 +11,8 @@ http_auth_secret = client_config['HTTP_AUTH_SECRET']
 http_auth = HTTPBasicAuth(http_auth_username, http_auth_secret)
 
 # Header to get reactions along with comments
-reactions_header = {'Accept': 'application/vnd.github.squirrel-girl-preview'}
+reactions_header = {'Accept': 'application/vnd.github.squirrel-girl-preview',
+                    'direction': 'desc', 'sort': 'created'}
 
 
 def rate_reset_wait(headers):
