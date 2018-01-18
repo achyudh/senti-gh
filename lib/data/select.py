@@ -7,8 +7,7 @@ def repo_reaper(dataset_path, skip_existing=False):
         _first_line = dataset_csv.readline()
         for line in dataset_csv:
             full_repo_name = '/'.join(line.split(',')[0].split('/')[3:5])
-            if not skip_existing or (os.path.isfile('data/user/%s.json' % full_repo_name)
-                                     and os.path.isfile('data/repo/%s.json' % full_repo_name)):
+            if skip_existing and not(os.path.isfile('data/user/%s.json' % full_repo_name) and os.path.isfile('data/repo/%s.json' % full_repo_name)):
                 print("Fetching %s..." % full_repo_name)
                 collate.by_user(full_repo_name)
 
