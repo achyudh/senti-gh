@@ -25,7 +25,7 @@ def by_user(full_repo_name):
     db.insert(repo_data, 'data/repo/%s.json' % full_repo_name)
     # Collate user data
     for issue in repo_data['issues']:
-        if 'pull_request' not in issue and issue['user'] is not None:
+        if not isinstance(issue, str) and 'pull_request' not in issue and issue['user'] is not None:
             if user_data.get(issue['user']['login'], None) is None:
                 init_user_data(user_data, issue['user']['login'])
             text_obj = dict()
@@ -37,7 +37,7 @@ def by_user(full_repo_name):
             user_data[issue['user']['login']]['issues'].append(text_obj)
 
     for commit in repo_data['commits']:
-        if commit['author'] is not None:
+        if not isinstance(commit, str) and commit['author'] is not None and 'login' in commit['author']:
             if user_data.get(commit['author']['login'], None) is None:
                 init_user_data(user_data, commit['author']['login'])
             text_obj = dict()
@@ -46,7 +46,7 @@ def by_user(full_repo_name):
             user_data[commit['author']['login']]['commits'].append(text_obj)
 
     for pull_request in repo_data['pull_requests']:
-        if pull_request['user'] is not None:
+        if not isinstance(pull_request, str) and pull_request['user'] is not None:
             if user_data.get(pull_request['user']['login'], None) is None:
                 init_user_data(user_data, pull_request['user']['login'])
             text_obj = dict()
@@ -57,7 +57,7 @@ def by_user(full_repo_name):
             user_data[pull_request['user']['login']]['pull_requests'].append(text_obj)
 
     for issue_comment in repo_data['issue_comments']:
-        if issue_comment['user'] is not None:
+        if not isinstance(issue_comment, str) and issue_comment['user'] is not None:
             if user_data.get(issue_comment['user']['login'], None) is None:
                 init_user_data(user_data, issue_comment['user']['login'])
             text_obj = dict()
@@ -68,7 +68,7 @@ def by_user(full_repo_name):
             user_data[issue_comment['user']['login']]['issue_comments'].append(text_obj)
 
     for commit_comment in repo_data['commit_comments']:
-        if commit_comment['user'] is not None:
+        if not isinstance(commit_comment, str) and commit_comment['user'] is not None:
             if user_data.get(commit_comment['user']['login'], None) is None:
                 init_user_data(user_data, commit_comment['user']['login'])
             text_obj = dict()
@@ -79,7 +79,7 @@ def by_user(full_repo_name):
             user_data[commit_comment['user']['login']]['commit_comments'].append(text_obj)
 
     for review_comment in repo_data['review_comments']:
-        if review_comment['user'] is not None:
+        if not isinstance(review_comment, str) and review_comment['user'] is not None:
             if user_data.get(review_comment['user']['login'], None) is None:
                 init_user_data(user_data, review_comment['user']['login'])
             text_obj = dict()
