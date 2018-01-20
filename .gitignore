@@ -3,4 +3,8 @@
 
 config\.json
 
+data/
+
+data/glove/
+
 *.pyc
