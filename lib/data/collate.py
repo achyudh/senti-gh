@@ -12,15 +12,15 @@ def init_user_data(user_data, user_login):
     user_data[user_login]['review_comments'] = list()
 
 
-def by_user(full_repo_name):
+def by_user(full_repo_name, num_pages=1):
     user_data = dict()
     repo_data = dict()
-    repo_data['issues'] = fetch.issues(full_repo_name)
-    repo_data['commits'] = fetch.commits(full_repo_name)
-    repo_data['pull_requests'] = fetch.pull_requests(full_repo_name)
-    repo_data['issue_comments'] =fetch.issue_comments(full_repo_name)
-    repo_data['commit_comments'] = fetch.commit_comments(full_repo_name)
-    repo_data['review_comments'] = fetch.review_comments(full_repo_name)
+    repo_data['issues'] = fetch.issues(full_repo_name, num_pages)
+    repo_data['commits'] = fetch.commits(full_repo_name, num_pages)
+    repo_data['pull_requests'] = fetch.pull_requests(full_repo_name, num_pages)
+    repo_data['issue_comments'] =fetch.issue_comments(full_repo_name, num_pages)
+    repo_data['commit_comments'] = fetch.commit_comments(full_repo_name, num_pages)
+    repo_data['review_comments'] = fetch.review_comments(full_repo_name, num_pages)
     # Save repo data
     db.insert(repo_data, 'data/repo/%s.json' % full_repo_name)
     # Collate user data

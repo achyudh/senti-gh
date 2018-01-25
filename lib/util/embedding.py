@@ -8,7 +8,7 @@ class TfidfEmbeddingVectorizer(object):
     def __init__(self, word2vec):
         self.word2vec = word2vec
         self.word2weight = None
-        self.dim = len(word2vec.itervalues().next())
+        self.dim = len(word2vec.values())
 
     def fit(self, X, y):
         tfidf = TfidfVectorizer(analyzer=lambda x: x)
@@ -29,7 +29,7 @@ class MeanEmbeddingVectorizer(object):
     def __init__(self, word2vec):
         self.word2vec = word2vec
         # If a text is empty we should return a vector of zeros with the same dimensionality as all the other vectors
-        self.dim = len(word2vec.itervalues().next())
+        self.dim = len(word2vec.values())
 
     def fit(self, X, y):
         return self
@@ -53,17 +53,19 @@ def word2vec(X):
     return w2v
 
 
-def glove6B(X):
+def glove6B():
     """
 
-    :param X:
+    :param X: A list of tokenized texts (i.e. list of lists of tokens)
     :return: A pre-trained Word2Vec model on 6B tokens
     """
     with open("data/glove/glove.6B.300d.txt", "rb") as lines:
         w2v = {line.split()[0]: np.array(map(float, line.split()[1:])) for line in lines}
+    print("Glove6B loaded into memory")
+    return w2v
 
 
-def glove840B(X):
+def glove840B():
     """
 
     :param X:
@@ -71,3 +73,4 @@ def glove840B(X):
     """
     with open("data/glove/glove.840B.300d.txt", "rb") as lines:
         w2v = {line.split()[0]: np.array(map(float, line.split()[1:])) for line in lines}
+    return w2v
