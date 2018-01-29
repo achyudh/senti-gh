@@ -1,0 +1,1 @@
+When experimenting with thumbs up, macro recall was 0.5, with 0% recall in the classes representing the presence of emotion. This was because the dataset was considerably skewed with a very small percent (less than 2% for +1 emotion, even less for the rest) and our models did not have much to learn on. 
