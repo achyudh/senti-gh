@@ -1,7 +1,9 @@
 from lib.data import fetch
-from lib.embeddings.pre_trained import MeanEmbeddingVectorizer, TfidfEmbeddingVectorizer, glove6B
-from sklearn.pipeline import Pipeline
+from lib.embeddings.glove import MeanEmbeddingVectorizer, TfidfEmbeddingVectorizer, glove6B
+from sklearn.metrics import precision_recall_fscore_support
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import StratifiedKFold
+from sklearn.pipeline import Pipeline
 
 
 def train(train_x, train_y):
@@ -14,16 +16,23 @@ def train(train_x, train_y):
 
 
 def predict(classifier, predict_x):
-    pass
+    return classifier.predict(predict_x)
 
 
 def evaluate(classifier, evaluate_x, evaluate_y):
-    pass
+    predict_y = classifier.predict(evaluate_x)
+    return precision_recall_fscore_support(evaluate_y, predict_y)
 
 
-def cross_val(x, y):
-    rfc_pipeline = train()
+def cross_val(data_x, data_y, n_splits=5):
+    skf = StratifiedKFold(n_splits)
+    print("Performing cross validation (%d fold)..." % n_splits)
+    for train_index, test_index in skf.split(data_x, data_y):
+        rfc_pipeline = train(data_x[train_index], data_y[train_index])
+        print(evaluate(rfc_pipeline, data_x[test_index], data_y[test_index]))
+    print("Precision, Recall, F_Score, Support")
 
 
-data_x, data_y = fetch.labelled_comments("./data/labelled/pull_requests/grouped_emotions.csv")
-cross_val()
+if __name__ == '__main__':
+    data_x, data_y = fetch.labelled_comments("./data/labelled/pull_requests/grouped_emotions.csv")
+    cross_val(data_x, data_y)
