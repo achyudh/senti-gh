@@ -1,10 +1,18 @@
 
-\.idea/
+.\data\
+
+*.pyc
 
 config\.json
 
-data/
+\.idea/
 
 data/glove/
 
-*.pyc
+data/repo_reaper/
+
+data/labelled/
+
+data/repo/
+
+data/user/
