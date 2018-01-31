@@ -1,14 +1,13 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from collections import defaultdict
 import numpy as np
-import gensim
 
 
 class TfidfEmbeddingVectorizer(object):
     def __init__(self, word2vec):
         self.word2vec = word2vec
         self.word2weight = None
-        self.dim = len(word2vec.values())
+        self.dim = len(word2vec["a"])
 
     def fit(self, X, y):
         tfidf = TfidfVectorizer(analyzer=lambda x: x)
@@ -29,7 +28,7 @@ class MeanEmbeddingVectorizer(object):
     def __init__(self, word2vec):
         self.word2vec = word2vec
         # If a text is empty we should return a vector of zeros with the same dimensionality as all the other vectors
-        self.dim = len(word2vec.values())
+        self.dim = len(word2vec["a"])
 
     def fit(self, X, y):
         return self
@@ -42,18 +41,7 @@ class MeanEmbeddingVectorizer(object):
         ])
 
 
-def word2vec(X):
-    """
-    Train a Word2Vec model from scratch with Gensim
-    :param X: A list of tokenized texts (i.e. list of lists of tokens)
-    :return: A trained Word2Vec model
-    """
-    model = gensim.models.Word2Vec(X, size=100)
-    w2v = dict(zip(model.wv.index2word, model.wv.syn0))
-    return w2v
-
-
-def glove6B():
+def load_glove6B():
     """
 
     :param X: A list of tokenized texts (i.e. list of lists of tokens)
@@ -65,7 +53,7 @@ def glove6B():
     return w2v
 
 
-def glove840B():
+def load_glove840B():
     """
 
     :param X:

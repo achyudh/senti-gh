@@ -16,3 +16,5 @@ data/labelled/
 data/repo/
 
 data/user/
+
+data/embedding/word2vec/
