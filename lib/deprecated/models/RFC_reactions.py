@@ -1,12 +1,13 @@
-from deprecated import fetch_reactions
+from lib.deprecated.data import fetch_reactions
+from sklearn.pipeline import Pipeline
 
 token_matrix, reaction_matrix = fetch_reactions.reactions("data/user")
 
-# w2v = glove6B()
-#
-# rfc_w2v = Pipeline([
-#     ("MeanEmbeddingVectorizer", MeanEmbeddingVectorizer(w2v)),
-#     ("RandomForestClassifier", RandomForestClassifier(n_estimators=200, n_jobs=7))])
+w2v = glove6B()
+
+rfc_w2v = Pipeline([
+    ("MeanEmbeddingVectorizer", MeanEmbeddingVectorizer(w2v)),
+    ("RandomForestClassifier", RandomForestClassifier(n_estimators=200, n_jobs=7))])
 
 print("Reaction skew for +1", sum(reaction_matrix[:, 4])/len(reaction_matrix[:, 4]))
 

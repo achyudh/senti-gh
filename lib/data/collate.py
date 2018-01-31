@@ -1,4 +1,4 @@
-from lib.data import fetch
+from lib.data import download
 from lib.util import db
 
 
@@ -15,12 +15,12 @@ def init_user_data(user_data, user_login):
 def by_user(full_repo_name, num_pages=1):
     user_data = dict()
     repo_data = dict()
-    repo_data['issues'] = fetch.issues(full_repo_name, num_pages)
-    repo_data['commits'] = fetch.commits(full_repo_name, num_pages)
-    repo_data['pull_requests'] = fetch.pull_requests(full_repo_name, num_pages)
-    repo_data['issue_comments'] =fetch.issue_comments(full_repo_name, num_pages)
-    repo_data['commit_comments'] = fetch.commit_comments(full_repo_name, num_pages)
-    repo_data['review_comments'] = fetch.review_comments(full_repo_name, num_pages)
+    repo_data['issues'] = download.issues(full_repo_name, num_pages)
+    repo_data['commits'] = download.commits(full_repo_name, num_pages)
+    repo_data['pull_requests'] = download.pull_requests(full_repo_name, num_pages)
+    repo_data['issue_comments'] =download.issue_comments(full_repo_name, num_pages)
+    repo_data['commit_comments'] = download.commit_comments(full_repo_name, num_pages)
+    repo_data['review_comments'] = download.review_comments(full_repo_name, num_pages)
     # Save repo data
     db.insert(repo_data, 'data/repo/%s.json' % full_repo_name)
     # Collate user data
