@@ -17,8 +17,8 @@ reactions_header = {'Accept': 'application/vnd.github.squirrel-girl-preview',
 def rate_reset_wait(headers):
     ratelimit_remaining = int(headers['X-RateLimit-Remaining'])
     if ratelimit_remaining <= 0:
-        print("Wait for %d minutes..." % ((int(headers['X-RateLimit-Reset']) - time.time())//60))
-        time.sleep(headers['X-RateLimit-Reset'] - time.time() + 1)
+        print("Waiting for %d minutes..." % ((int(headers['X-RateLimit-Reset']) - time.time())//60))
+        time.sleep(int(headers['X-RateLimit-Reset']) - time.time() + 1)
         return "RateLimit Reset"
     else:
         if ratelimit_remaining % 100 == 0:
