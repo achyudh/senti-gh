@@ -6,7 +6,7 @@
 ### Prerequisites:
 Apart from Tensorflow, the implementation made use of the classifiers and evaluation metrics implemented in the Scikit-learn library for Python, and Scikit-fuzzy package was used for the FCM algorithm. Word Tokenizer from the NLTK library was used to preprocess the corpora. To perform some linear algebra computations and store the intermediate results, the popular Numpy package was used. The Pandas package provided the necessary utilities for reading and storing the pre-processed text data.
 
-### Data
+### Data:
 The data being used for this project is stored in a separate repository here: https://github.com/achyudhk/Senti-GH-Data. The complete dataset has more than 3000 repositories and is not a part of the repository due to its size. Further, trained Word2Vec models are also not a part of the repository due to their size and are available upon request. 
 
 ## Contributing:
