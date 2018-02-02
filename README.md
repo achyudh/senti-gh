@@ -1,5 +1,5 @@
 # Senti-GH
-> Empirical modeling of developer sentiments through user discussions on GitHub.
+> Empirical modeling of developer sentiments by learning from user discussions on GitHub with deep neural networks.
 
 ## Getting Started:
 
