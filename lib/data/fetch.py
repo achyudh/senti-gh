@@ -2,7 +2,7 @@ from nltk.tokenize import word_tokenize
 from tinydb import TinyDB
 import pandas as pd
 import numpy as np
-import os
+import os, random
 
 
 def labelled_comments(dataset_path, delete_identifier=True):
@@ -67,7 +67,7 @@ def complete_text(dataset_path="./data/user/"):
 
 
 def text_with_reactions(rootdir):
-    total_count = reaction_count = 0
+    total_count = reaction_count = no_reaction_count = 0
     token_matrix = list()
     reaction_matrix = list()
     for subdir, dirs, files in os.walk(rootdir):
@@ -96,42 +96,77 @@ def text_with_reactions(rootdir):
                                                       1 if issue['reactions']['hooray'] > 0 else 0,
                                                       1 if issue['reactions']['confused'] > 0 else 0,
                                                       1 if issue['reactions']['heart'] > 0 else 0))
-                        for comment in user_data['issue_comments']:
-                            if comment['reactions']['total_count'] > 0:
-                                reaction_count += 1
-                                if comment['body'] is not None:
-                                    token_matrix.append(word_tokenize(comment['body'].lower()))
-                                    reaction_matrix.append((1 if comment['reactions']['+1'] > 0 else 0,
-                                                           1 if comment['reactions']['-1'] > 0 else 0,
-                                                           1 if comment['reactions']['laugh'] > 0 else 0,
-                                                           1 if comment['reactions']['hooray'] > 0 else 0,
-                                                           1 if comment['reactions']['confused'] > 0 else 0,
-                                                           1 if comment['reactions']['heart'] > 0 else 0))
-                        for comment in user_data['review_comments']:
-                            if comment['reactions']['total_count'] > 0:
-                                reaction_count += 1
-                                if comment['body'] is not None:
-                                    token_matrix.append(word_tokenize(comment['body'].lower()))
-                                    reaction_matrix.append((1 if comment['reactions']['+1'] > 0 else 0,
-                                                            1 if comment['reactions']['-1'] > 0 else 0,
-                                                            1 if comment['reactions']['laugh'] > 0 else 0,
-                                                            1 if comment['reactions']['hooray'] > 0 else 0,
-                                                            1 if comment['reactions']['confused'] > 0 else 0,
-                                                            1 if comment['reactions']['heart'] > 0 else 0))
-                        for comment in user_data['commit_comments']:
-                            if comment['reactions']['total_count'] > 0:
-                                reaction_count += 1
-                                if comment['body'] is not None:
-                                    token_matrix.append(word_tokenize(comment['body'].lower()))
-                                    reaction_matrix.append((1 if comment['reactions']['+1'] > 0 else 0,
-                                                            1 if comment['reactions']['-1'] > 0 else 0,
-                                                            1 if comment['reactions']['laugh'] > 0 else 0,
-                                                            1 if comment['reactions']['hooray'] > 0 else 0,
-                                                            1 if comment['reactions']['confused'] > 0 else 0,
-                                                            1 if comment['reactions']['heart'] > 0 else 0))
-                    
+                    else:
+                        if random.randint(0, 100) < 2:
+                            no_reaction_count += 1
+                            null_flag = False
+                            if issue['title'] is not None and issue['body'] is not None:
+                                token_matrix.append(word_tokenize((issue['title'] + ' ' + issue['body']).lower()))
+                            elif issue['body'] is not None:
+                                token_matrix.append(word_tokenize(issue['body'].lower()))
+                            elif issue['title'] is not None:
+                                token_matrix.append(word_tokenize(issue['title'].lower()))
+                            else:
+                                null_flag = True
+                            if not null_flag:
+                                reaction_matrix.append((0, 0, 0, 0, 0, 0))
 
-    print("Number of comments with reactions:", reaction_count, "Total number of comments:", total_count, "Fraction:", reaction_count/total_count)
+                    for comment in user_data['issue_comments']:
+                        if comment['reactions']['total_count'] > 0:
+                            reaction_count += 1
+                            if comment['body'] is not None:
+                                token_matrix.append(word_tokenize(comment['body'].lower()))
+                                reaction_matrix.append((1 if comment['reactions']['+1'] > 0 else 0,
+                                                       1 if comment['reactions']['-1'] > 0 else 0,
+                                                       1 if comment['reactions']['laugh'] > 0 else 0,
+                                                       1 if comment['reactions']['hooray'] > 0 else 0,
+                                                       1 if comment['reactions']['confused'] > 0 else 0,
+                                                       1 if comment['reactions']['heart'] > 0 else 0))
+                        else:
+                            if random.randint(0, 100) < 2:
+                                no_reaction_count += 1
+                                if comment['body'] is not None:
+                                    token_matrix.append(word_tokenize(comment['body'].lower()))
+                                    reaction_matrix.append((0, 0, 0, 0, 0, 0))
+
+                    for comment in user_data['review_comments']:
+                        if comment['reactions']['total_count'] > 0:
+                            reaction_count += 1
+                            if comment['body'] is not None:
+                                token_matrix.append(word_tokenize(comment['body'].lower()))
+                                reaction_matrix.append((1 if comment['reactions']['+1'] > 0 else 0,
+                                                        1 if comment['reactions']['-1'] > 0 else 0,
+                                                        1 if comment['reactions']['laugh'] > 0 else 0,
+                                                        1 if comment['reactions']['hooray'] > 0 else 0,
+                                                        1 if comment['reactions']['confused'] > 0 else 0,
+                                                        1 if comment['reactions']['heart'] > 0 else 0))
+                        else:
+                            if random.randint(0, 100) < 2:
+                                no_reaction_count += 1
+                                if comment['body'] is not None:
+                                    token_matrix.append(word_tokenize(comment['body'].lower()))
+                                    reaction_matrix.append((0, 0, 0, 0, 0, 0))
+
+                    for comment in user_data['commit_comments']:
+                        if comment['reactions']['total_count'] > 0:
+                            reaction_count += 1
+                            if comment['body'] is not None:
+                                token_matrix.append(word_tokenize(comment['body'].lower()))
+                                reaction_matrix.append((1 if comment['reactions']['+1'] > 0 else 0,
+                                                        1 if comment['reactions']['-1'] > 0 else 0,
+                                                        1 if comment['reactions']['laugh'] > 0 else 0,
+                                                        1 if comment['reactions']['hooray'] > 0 else 0,
+                                                        1 if comment['reactions']['confused'] > 0 else 0,
+                                                        1 if comment['reactions']['heart'] > 0 else 0))
+                        else:
+                            if random.randint(0, 100) < 2:
+                                no_reaction_count += 1
+                                if comment['body'] is not None:
+                                    token_matrix.append(word_tokenize(comment['body'].lower()))
+                                    reaction_matrix.append((0, 0, 0, 0, 0, 0))
+
+
+    print("Number of comments with reactions:", reaction_count, "Number of added comments without reactions:", reaction_count, "Total number of comments:", total_count, "Fraction:", (reaction_count+no_reaction_count)/total_count)
     return np.array(token_matrix), np.array(reaction_matrix).astype('int')
 
 
