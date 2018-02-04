@@ -1,6 +1,6 @@
 from lib.embedding.glove import load_glove6B
 from lib.embedding.vectorizer import TfidfEmbeddingVectorizer
-from sklearn.metrics import precision_recall_fscore_support, accuracy_score
+from sklearn.metrics import precision_recall_fscore_support
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold
 from lib.embedding.word2vec import train_gensim, load_gensim
