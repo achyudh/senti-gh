@@ -30,7 +30,6 @@ def embedding_matrix(word_index, model_path='data/embedding/word2vec/gensim_size
     w2v = load_gensim(model_path, binary)
     embedding_map = np.zeros((len(word_index) + 1, size))
     for word, i in word_index.items():
-        embedding_vector = w2v.get(word, None)
-        if embedding_vector is not None:
-            embedding_map[i] = embedding_vector
+        if word in w2v:
+            embedding_map[i] = w2v[word]
     return embedding_map
