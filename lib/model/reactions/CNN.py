@@ -62,17 +62,18 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, n_
 
 
 if __name__ == '__main__':
-    embedding_dim = 300
-    data_x, reaction_matrix = fetch.text_with_reactions("data/user", tokenize=False)
+    embedding_dim = 100
+    data_x, reaction_matrix = fetch.sentences_with_reactions("data/user", tokenize=False)
     data_y = reaction_matrix[:, 0]
     tokenizer = Tokenizer()
     tokenizer.fit_on_texts(data_x)
     sequences = tokenizer.texts_to_sequences(data_x)
     max_sequence_len = max(len(seq) for seq in sequences)
-    max_sequence_len = min(1000, max_sequence_len)
+    max_sequence_len = min(500, max_sequence_len)
+    print("Max. sequence length:", max_sequence_len)
     data_x = pad_sequences(sequences, maxlen=max_sequence_len)
     # data_y_cat = to_categorical(data_y, num_classes=2)
     word_index = tokenizer.word_index
-    embedding_map = embedding_matrix(word_index, model_path='data/embedding/word2vec/gensim_size300_min5')
+    embedding_map = embedding_matrix(word_index, model_path='data/embedding/word2vec/gensim_size100_min3')
     print("Thumbs-up:")
     cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, n_splits=5)
