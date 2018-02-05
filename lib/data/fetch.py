@@ -312,6 +312,5 @@ def text_with_reactions(rootdir, tokenize=True):
     return np.array(token_matrix), np.array(reaction_matrix).astype('int')
 
 
-
 if __name__ == '__main__':
     print(labelled_comments("./data/labelled/pull_requests/grouped_emotions.csv"))
