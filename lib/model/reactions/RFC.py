@@ -2,14 +2,15 @@ from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 from sklearn.model_selection import StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
-from lib.embedding.vectorizer import TfidfEmbeddingVectorizer
+from lib.embedding.vectorizer import HybridEmbeddingVectorizer
 from lib.embedding.word2vec import train_gensim, load_gensim
 from lib.data import fetch
+import numpy as np
 
 
-def train(train_x, train_y, w2v):
+def train(train_x, train_y, w2v1, w2v2, dim1, dim2):
     rfc_pipeline = Pipeline([
-        ("TfidfEmbeddingVectorizer", TfidfEmbeddingVectorizer(w2v)),
+        ("TfidfEmbeddingVectorizer", HybridEmbeddingVectorizer(w2v1, w2v2, dim1, dim2)),
         ("RandomForestClassifier", RandomForestClassifier(n_estimators=300, n_jobs=8))])
     rfc_pipeline.fit(train_x, train_y)
     return rfc_pipeline
@@ -25,7 +26,7 @@ def evaluate(classifier, evaluate_x, evaluate_y):
             "micro-average": precision_recall_fscore_support(evaluate_y, predict_y, average="micro")}
 
 
-def cross_val(data_x, data_y, w2v, n_splits=5):
+def cross_val(data_x, data_y, w2v1, w2v2, dim1, dim2, n_splits=5):
     skf = StratifiedKFold(n_splits)
     print("Performing cross validation (%d-fold)..." % n_splits)
     print("Precision, Recall, F_Score, Support")
@@ -33,7 +34,7 @@ def cross_val(data_x, data_y, w2v, n_splits=5):
     mean_recall = 0
     mean_accuracy = 0
     for train_index, test_index in skf.split(data_x, data_y):
-        rfc_pipeline = train(data_x[train_index], data_y[train_index], w2v)
+        rfc_pipeline = train(data_x[train_index], data_y[train_index], w2v1, w2v2, dim1, dim2)
         metrics = evaluate(rfc_pipeline, data_x[test_index], data_y[test_index])
         mean_precision += metrics['individual'][0][1]
         mean_recall += metrics['individual'][1][1]
@@ -44,9 +45,9 @@ def cross_val(data_x, data_y, w2v, n_splits=5):
 
 if __name__ == '__main__':
     data_x, reaction_matrix = fetch.text_with_reactions("data/user")
+    data_x = np.array(data_x)
     data_y = reaction_matrix[:, 0]
     print("Reaction skew for +1", sum(reaction_matrix[:, 0]) / len(reaction_matrix[:, 0]))
-
-    # w2v = train_gensim(np.concatenate([data_x, fetch.complete_text()]), size=50, min_count=3)
-    w2v = load_gensim('data/embedding/word2vec/gensim_size50_min3')
-    cross_val(data_x, data_y, w2v, n_splits=5)
+    w2v1 = load_gensim('data/embedding/word2vec/gensim_size300_min5')
+    w2v2 = load_gensim('data/embedding/word2vec/googlenews_size300.bin', binary=True)
+    cross_val(data_x, data_y, w2v1, w2v2, 300, 300, n_splits=5)

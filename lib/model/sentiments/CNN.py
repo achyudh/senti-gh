@@ -61,7 +61,7 @@ def cross_val(data_x, data_y, data_y_cat, embedding_map, embedding_dim, max_sequ
 
 if __name__ == '__main__':
     embedding_dim = 50
-    data_x, data_y = fetch.labelled_comments("./data/labelled/pull_requests/agrees.csv", tokenize=False)
+    data_x, data_y = fetch.labelled_comments("./data/labelled/pull_requests/agrees.csv", tokenize_words=False)
     tokenizer = Tokenizer()
     tokenizer.fit_on_texts(data_x)
     sequences = tokenizer.texts_to_sequences(data_x)
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     print("Agrees:")
     cross_val(data_x, data_y, data_y_cat, embedding_map, embedding_dim, max_sequence_len, n_splits=5)
 
-    data_x, data_y = fetch.labelled_comments("./data/labelled/pull_requests/gives_opinion.csv", tokenize=False)
+    data_x, data_y = fetch.labelled_comments("./data/labelled/pull_requests/gives_opinion.csv", tokenize_words=False)
     tokenizer = Tokenizer()
     tokenizer.fit_on_texts(data_x)
     sequences = tokenizer.texts_to_sequences(data_x)
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     print("Gives opinion:")
     cross_val(data_x, data_y, data_y_cat, embedding_map, embedding_dim, max_sequence_len, n_splits=5)
 
-    data_x, data_y = fetch.labelled_comments("./data/labelled/pull_requests/grouped_emotions.csv", tokenize=False)
+    data_x, data_y = fetch.labelled_comments("./data/labelled/pull_requests/grouped_emotions.csv", tokenize_words=False)
     tokenizer = Tokenizer()
     tokenizer.fit_on_texts(data_x)
     sequences = tokenizer.texts_to_sequences(data_x)

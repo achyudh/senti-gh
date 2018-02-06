@@ -6,27 +6,53 @@ import os, random
 import scipy.sparse
 
 
-def labelled_comments(dataset_path, tokenize=True, delete_identifier=True):
+def labelled_comments(dataset_path, tokenize_words=True, tokenize_sentences=True, delete_identifier=True):
     raw_data = pd.read_csv(dataset_path)
     if delete_identifier and 'pull_request_id' in raw_data.columns:
         del raw_data['pull_request_id']
     raw_data = raw_data.as_matrix()
     np.random.shuffle(raw_data)
-    data_y = raw_data[:, 1].astype('int')
+    raw_y = raw_data[:, 1].astype('int')
     raw_x = raw_data[:, 0]
     data_x = list()
-    if tokenize:
-        for sentence in raw_x:
-            if isinstance(sentence, str):
-                data_x.append(word_tokenize(sentence.lower()))
-            else:
-                data_x.append([""])
+    if tokenize_sentences:
+        index = 0
+        data_y = list()
+        if tokenize_words:
+            for text in raw_x:
+                if isinstance(text, str):
+                    for sentence in sent_tokenize(text):
+                        data_x.append(word_tokenize(sentence.lower()))
+                        data_y.append(raw_y[index])
+                else:
+                    data_x.append([""])
+                    data_y.append(raw_y[index])
+                index += 1
+        else:
+            for text in raw_x:
+                if isinstance(text, str):
+                    for sentence in sent_tokenize(text):
+                        data_x.append(sentence.lower())
+                        data_y.append(raw_y[index])
+                else:
+                    data_x.append([""])
+                    data_y.append(raw_y[index])
+                index += 1
+        data_y = np.array(data_y)
     else:
-        for sentence in raw_x:
-            if isinstance(sentence, str):
-                data_x.append(sentence.lower())
-            else:
-                data_x.append("")
+        data_y = raw_y
+        if tokenize_words:
+            for sentence in raw_x:
+                if isinstance(sentence, str):
+                    data_x.append(word_tokenize(sentence.lower()))
+                else:
+                    data_x.append([""])
+        else:
+            for sentence in raw_x:
+                if isinstance(sentence, str):
+                    data_x.append(sentence.lower())
+                else:
+                    data_x.append("")
     data_x = np.array(data_x)
     return data_x, data_y
 
