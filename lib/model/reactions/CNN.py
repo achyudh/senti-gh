@@ -2,7 +2,7 @@ from lib.embedding.word2vec import embedding_matrix
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 from sklearn.model_selection import StratifiedKFold
 from tensorflow.python.keras.layers import Embedding, Dense, Input, Flatten, Embedding
-from tensorflow.python.keras.layers import Conv1D, MaxPooling1D, Embedding, Dropout
+from tensorflow.python.keras.layers import Conv1D, MaxPooling1D, Embedding, Dropout, GlobalMaxPool1D
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.utils import to_categorical
 from tensorflow.python.keras.preprocessing.text import Tokenizer
@@ -16,21 +16,19 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
                             input_length=max_sequence_len, trainable=False)
     sequence_input = Input(shape=(max_sequence_len,), dtype='int32')
     embedded_sequences = embedding_layer(sequence_input)
-    l_cov1= Conv1D(128, 5, activation='relu')(embedded_sequences)
-    l_pool1 = MaxPooling1D(4)(l_cov1)
-    l_cov2 = Conv1D(128, 5, activation='relu')(l_pool1)
-    l_pool2 = MaxPooling1D(4)(l_cov2)
-    l_cov3 = Conv1D(64, 2, activation='relu')(l_pool2)
-    l_pool3 = MaxPooling1D(16)(l_cov3)
-    l_flat = Flatten()(l_pool3)
-    l_dense1 = Dense(128, activation='sigmoid')(l_flat)
-    # l_dropout = Dropout(0.2)(l_dense1)
-    l_dense2 = Dense(64, activation='sigmoid')(l_dense1)
-    preds = Dense(1, activation='sigmoid')(l_dense2)
+    l_conv1= Conv1D(250, 3, activation='relu', padding='valid',)(embedded_sequences)
+    l_pool1 = MaxPooling1D(5)(l_conv1)
+    l_conv2 = Conv1D(100, 3, activation='relu')(l_pool1)
+    l_pool3 = GlobalMaxPool1D()(l_conv2)
+    l_dense1 = Dense(150, activation='relu')(l_pool3)
+    l_dropout1 = Dropout(0.2)(l_dense1)
+    l_dense2 = Dense(50, activation='relu')(l_dropout1)
+    l_dropout2 = Dropout(0.2)(l_dense2)
+    preds = Dense(1, activation='sigmoid')(l_dropout2)
     cnn_model = Model(sequence_input, preds)
     cnn_model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     cnn_model.summary()
-    cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=10, batch_size=256)
+    cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=10, batch_size=128)
     return cnn_model
 
 
