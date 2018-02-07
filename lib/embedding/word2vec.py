@@ -39,5 +39,29 @@ def embedding_matrix(word_index, model_path='data/embedding/word2vec/gensim_size
 
 
 if __name__ == '__main__':
-    word_index = dict({'apple':1})
-    embedding_matrix(word_index, model_path='data/embedding/word2vec/googlenews_size300.bin', binary=True)
+    w2v = load_gensim()
+    print("Custom:")
+    print("Vocab. size:", len(w2v.wv.vocab))
+    # print('repo', [x[0] for x in w2v.most_similar('repo')])
+    # print('fork', [x[0] for x in w2v.most_similar('fork')])
+    # print('branch', [x[0] for x in w2v.most_similar('branch')])
+    # print('patch', [x[0] for x in w2v.most_similar('patch')])
+    # print('tree', [x[0] for x in w2v.most_similar('tree')])
+    # print('ssh', [x[0] for x in w2v.most_similar('ssh')])
+    # print('rails', [x[0] for x in w2v.most_similar('rails')])
+    print('android', [x[0] for x in w2v.most_similar('android')])
+    print('call', [x[0] for x in w2v.most_similar('call')])
+
+    w2v = load_gensim('data/embedding/word2vec/googlenews_size300.bin', binary=True)
+    print("Google:")
+    print("Vocab. size:", len(w2v.wv.vocab))
+    # print('repo', [x[0] for x in w2v.most_similar('repo')])
+    # print('fork', [x[0] for x in w2v.most_similar('fork')])
+    # print('branch', [x[0] for x in w2v.most_similar('branch')])
+    # print('patch', [x[0] for x in w2v.most_similar('patch')])
+    # print('tree', [x[0] for x in w2v.most_similar('tree')])
+    # print('ssh', [x[0] for x in w2v.most_similar('ssh')])
+    # print('rails', [x[0] for x in w2v.most_similar('rails')])
+    print('android', [x[0] for x in w2v.most_similar('android')])
+    print('call', [x[0] for x in w2v.most_similar('call')])
+
