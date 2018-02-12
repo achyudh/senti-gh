@@ -18,11 +18,11 @@ def by_user(full_repo_name, num_pages=1):
     repo_data['issues'] = download.issues(full_repo_name, num_pages)
     repo_data['commits'] = download.commits(full_repo_name, num_pages)
     repo_data['pull_requests'] = download.pull_requests(full_repo_name, num_pages)
-    repo_data['issue_comments'] =download.issue_comments(full_repo_name, num_pages)
+    repo_data['issue_comments'] = download.issue_comments(full_repo_name, num_pages)
     repo_data['commit_comments'] = download.commit_comments(full_repo_name, num_pages)
     repo_data['review_comments'] = download.review_comments(full_repo_name, num_pages)
     # Save repo data
-    db.insert(repo_data, 'data/repo/%s.json' % full_repo_name)
+    db.insert_repo(repo_data, 'data/repo/%s.json' % full_repo_name)
     # Collate user data
     for issue in repo_data['issues']:
         if not isinstance(issue, str) and 'pull_request' not in issue and issue['user'] is not None:
@@ -90,4 +90,4 @@ def by_user(full_repo_name, num_pages=1):
             user_data[review_comment['user']['login']]['review_comments'].append(text_obj)
 
     # Save user data
-    db.insert(user_data, 'data/user/%s.json' % full_repo_name)
+    db.insert_repo(user_data, 'data/user/%s.json' % full_repo_name)

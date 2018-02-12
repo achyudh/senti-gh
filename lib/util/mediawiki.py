@@ -1,4 +1,5 @@
-import wikipedia, datetime
+import wikipedia, datetime, os
+import numpy as np
 from tinydb import TinyDB
 from nltk.tokenize import word_tokenize, sent_tokenize
 from lib.util import db
@@ -7,9 +8,21 @@ from wikipedia.exceptions import PageError
 wikipedia.set_rate_limiting(200, min_wait=datetime.timedelta(0, 0, 500000))
 
 
-def fetch(dataset_path, tokenize_words=True, tokenize_sentences=True):
-    db = TinyDB(dataset_path)
-    return db.all()
+def fetch(dataset_path="data/wikipedia/content", tokenize_words=True, tokenize_sentences=True):
+    token_matrix = list()
+    for filename in os.listdir(dataset_path):
+        if filename.endswith(".json"):
+            db = TinyDB(os.path.join(dataset_path, filename))
+            for entry in db:
+                if tokenize_sentences and tokenize_words:
+                    token_matrix.extend([word_tokenize(x) for x in sent_tokenize(entry['content'])])
+                elif tokenize_sentences and not tokenize_words:
+                    token_matrix.extend([x for x in sent_tokenize(entry['content'])])
+                elif not tokenize_sentences and tokenize_words:
+                    token_matrix.extend([word_tokenize(x) for x in entry['content']])
+                else:
+                    token_matrix.append(entry['content'])
+    return np.array(token_matrix)
 
 
 def download(page_ids, db_path):
@@ -36,7 +49,6 @@ if __name__ == '__main__':
     #         page_ids.append(line.split(',')[1])
     #     download(page_ids, db_path="./data/wikipedia/content/computer_programming.json")
     #
-    # print(len(fetch("./data/wikipedia/content/computer_programming.json")))
 
     # with open("./data/wikipedia/titles/software.csv", 'r', encoding="utf8") as dataset_csv:
     #     _first_line = dataset_csv.readline()
@@ -44,12 +56,12 @@ if __name__ == '__main__':
     #     for line in dataset_csv:
     #         page_ids.append(line.split(',')[1])
     #     download(page_ids, db_path="./data/wikipedia/content/software.json")
-    # print(len(fetch("./data/wikipedia/content/software.json")))
 
-    with open("./data/wikipedia/titles/software_engineering.csv", 'r', encoding="utf8") as dataset_csv:
-        _first_line = dataset_csv.readline()
-        page_ids = list()
-        for line in dataset_csv:
-            page_ids.append(line.split(',')[1])
-        download(page_ids, db_path="./data/wikipedia/content/software_engineering.json")
-    print(len(fetch("./data/wikipedia/content/software_engineering.json")))
+    # with open("./data/wikipedia/titles/software_engineering.csv", 'r', encoding="utf8") as dataset_csv:
+    #     _first_line = dataset_csv.readline()
+    #     page_ids = list()
+    #     for line in dataset_csv:
+    #         page_ids.append(line.split(',')[1])
+    #     download(page_ids, db_path="./data/wikipedia/content/software_engineering.json")
+
+    print(fetch().shape)

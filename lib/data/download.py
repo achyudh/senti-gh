@@ -14,6 +14,7 @@ http_auth = HTTPBasicAuth(http_auth_username, http_auth_secret)
 reactions_header = {'Accept': 'application/vnd.github.squirrel-girl-preview',
                     'direction': 'desc', 'sort': 'created'}
 
+
 def rate_reset_wait(headers):
     ratelimit_remaining = int(headers['X-RateLimit-Remaining'])
     if ratelimit_remaining <= 0:

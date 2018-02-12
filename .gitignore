@@ -20,3 +20,7 @@ data/user/
 data/embedding/word2vec/
 
 data/embedding/glove/
+
+data/wikipedia/content/
+
+data/wikipedia/titles/
