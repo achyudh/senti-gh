@@ -16,6 +16,6 @@ def repo_reaper(dataset_path, num_pages=1, skip_existing=False, is_list=False):
 
 
 if __name__ == '__main__':
-    repo_reaper('data/repo_reaper/reaper_1000.csv', num_pages=10, skip_existing=True, is_list=True)
+    repo_reaper('data/repo_reaper/reaper_100.csv', num_pages=10, skip_existing=True, is_list=True)
     # repo_reaper('data/repo_reaper/utility.csv', num_pages=10, skip_existing=True)
     # repo_reaper('data/repo_reaper/validation.csv', num_pages=10, skip_existing=True)

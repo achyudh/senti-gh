@@ -1,6 +1,6 @@
 from requests.auth import HTTPBasicAuth
-from flask import Flask
 import requests, json, time
+from flask import Flask
 
 with open('config.json', 'r') as config_file:
     client_config = json.load(config_file)
@@ -16,7 +16,10 @@ reactions_header = {'Accept': 'application/vnd.github.squirrel-girl-preview',
 
 
 def rate_reset_wait(headers):
-    ratelimit_remaining = int(headers['X-RateLimit-Remaining'])
+    if 'X-RateLimit-Remaining' in headers:
+        ratelimit_remaining = int(headers['X-RateLimit-Remaining'])
+    else:
+        ratelimit_remaining = 1
     if ratelimit_remaining <= 0:
         print("Waiting for %d minutes..." % ((int(headers['X-RateLimit-Reset']) - time.time())//60))
         time.sleep(int(headers['X-RateLimit-Reset']) - time.time() + 1)

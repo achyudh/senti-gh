@@ -15,13 +15,13 @@ def fetch(dataset_path="data/wikipedia/content", tokenize_words=True, tokenize_s
             db = TinyDB(os.path.join(dataset_path, filename))
             for entry in db:
                 if tokenize_sentences and tokenize_words:
-                    token_matrix.extend([word_tokenize(x) for x in sent_tokenize(entry['content'])])
+                    token_matrix.extend([word_tokenize(x.lower()) for x in sent_tokenize(entry['content'])])
                 elif tokenize_sentences and not tokenize_words:
-                    token_matrix.extend([x for x in sent_tokenize(entry['content'])])
+                    token_matrix.extend([x.lower() for x in sent_tokenize(entry['content'])])
                 elif not tokenize_sentences and tokenize_words:
-                    token_matrix.extend([word_tokenize(x) for x in entry['content']])
+                    token_matrix.extend(word_tokenize(entry['content'].lower()))
                 else:
-                    token_matrix.append(entry['content'])
+                    token_matrix.append(entry['content'].lower())
     return np.array(token_matrix)
 
 

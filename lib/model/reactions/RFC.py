@@ -11,7 +11,7 @@ import numpy as np
 def train(train_x, train_y, w2v1, w2v2, dim1, dim2):
     rfc_pipeline = Pipeline([
         ("TfidfEmbeddingVectorizer", HybridEmbeddingVectorizer(w2v1, w2v2, dim1, dim2)),
-        ("RandomForestClassifier", RandomForestClassifier(n_estimators=300, n_jobs=8))])
+        ("RandomForestClassifier", RandomForestClassifier(n_estimators=500, n_jobs=8))])
     rfc_pipeline.fit(train_x, train_y)
     return rfc_pipeline
 

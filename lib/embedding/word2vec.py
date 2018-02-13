@@ -6,7 +6,11 @@ def train_tensorflow():
     pass
 
 
-def train_gensim(X, size=50, min_count=3):
+def load_tensorflow():
+    pass
+
+
+def train_gensim(X, size=50, min_count=5):
     """
     Train a Word2Vec model from scratch with Gensim
     :param X: A list of tokenized texts (i.e. list of lists of tokens)

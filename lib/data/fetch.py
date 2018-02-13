@@ -3,10 +3,9 @@ from tinydb import TinyDB
 import pandas as pd
 import numpy as np
 import os, random
-import scipy.sparse
 
 
-def labelled_comments(dataset_path, tokenize_words=True, tokenize_sentences=True, delete_identifier=True):
+def labelled_comments(dataset_path, tokenize_words=True, tokenize_sentences=True, delete_identifier=True, bigrams=False):
     raw_data = pd.read_csv(dataset_path)
     if delete_identifier and 'pull_request_id' in raw_data.columns:
         del raw_data['pull_request_id']
@@ -57,7 +56,7 @@ def labelled_comments(dataset_path, tokenize_words=True, tokenize_sentences=True
     return data_x, data_y
 
 
-def complete_text(dataset_path="./data/user/", tokenize=True):
+def complete_text(dataset_path="./data/user/", tokenize=True, bigrams=False):
     token_matrix = list()
     if tokenize:
         for subdir, dirs, files in os.walk(dataset_path):
@@ -139,7 +138,7 @@ def complete_text(dataset_path="./data/user/", tokenize=True):
     return np.array(token_matrix)
 
 
-def sentences_with_reactions(rootdir, tokenize=True):
+def sentences_with_reactions(rootdir, tokenize=True, bigrams=False):
     total_count = reaction_count = no_reaction_count = 0
     token_matrix = list()
     reaction_matrix = list()
@@ -283,7 +282,7 @@ def sentences_with_reactions(rootdir, tokenize=True):
     return token_matrix, np.array(reaction_matrix).astype('bool')
 
 
-def text_with_reactions(rootdir, tokenize=True):
+def text_with_reactions(rootdir, tokenize=True, bigrams=False):
     total_count = reaction_count = no_reaction_count = 0
     token_matrix = list()
     reaction_matrix = list()
@@ -484,4 +483,5 @@ def text_with_reactions(rootdir, tokenize=True):
 
 
 if __name__ == '__main__':
-    print(labelled_comments("./data/labelled/pull_requests/grouped_emotions.csv"))
+    complete_text()
+    # print(labelled_comments("./data/labelled/pull_requests/grouped_emotions.csv"))
