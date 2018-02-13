@@ -24,3 +24,5 @@ data/embedding/glove/
 data/wikipedia/content/
 
 data/wikipedia/titles/
+
+data/ngram/
