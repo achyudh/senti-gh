@@ -1,7 +1,6 @@
 from gensim.models import Phrases
 from lib.util import mediawiki
-from lib.data.fetch import complete_text
-import numpy as np
+
 
 def train(train_x, min_count=10, threshold=200, max_vocab_size=40000000, scoring='default'):
     bigram_model = Phrases(train_x, min_count=min_count, threshold=threshold,
@@ -33,10 +32,12 @@ if __name__ == '__main__':
     trigram_phrases = set()
 
     for phrase in bigram_model.export_phrases(train_x):
-        bigram_phrases.add(phrase)
+        if phrase[1] > 200:
+            bigram_phrases.add(phrase)
 
     for phrase in trigram_model.export_phrases(train_x):
-        trigram_phrases.add(phrase)
+        if phrase[1] > 200:
+            trigram_phrases.add(phrase)
 
     for phrase in bigram_phrases | trigram_phrases:
         print(phrase)
