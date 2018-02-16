@@ -1,3 +1,6 @@
+from nltk.tokenize import word_tokenize
+import matplotlib.pyplot as plt
+from tinydb import TinyDB
 import json
 
 
@@ -30,12 +33,103 @@ def preprocess(raw_dataset="data/epa/word_dictionary_raw.csv", processed_dataset
         json.dump(preprocessed_data, dataset_json)
 
 
-def load():
-    pass
+def load(dataset="data/epa/word_dictionary.json"):
+    with open(dataset, 'r') as dataset_json:
+        return json.load(dataset_json)
 
 
-def profile_devs(user_data):
-    pass
+def profile_devs(dataset):
+    dev_profiles = dict()
+    word_dict = load()
+    db = TinyDB(dataset)
+    for entry in db:
+        for user_id, user_data in entry.items():
+            if dev_profiles.get(user_id, None) is None:
+                dev_profiles[user_id] = dict()
+                dev_profiles[user_id]['Evaluation'] = list()
+                dev_profiles[user_id]['Potency'] = list()
+                dev_profiles[user_id]['Activity'] = list()
+            for value in user_data['issues']:
+                text = ''
+                if value['title'] is not None and value['body'] is not None:
+                    text = word_tokenize((value['title'] + ' ' + value['body']).lower())
+                elif value['body'] is not None:
+                    text = word_tokenize(value['body'].lower())
+                elif value['title'] is not None:
+                    text = word_tokenize(value['title'].lower())
+                for word in text:
+                    if word in word_dict:
+                        dev_profiles[user_id]['Evaluation'].append(word_dict[word]['Avg_Evaluation'])
+                        dev_profiles[user_id]['Potency'].append(word_dict[word]['Avg_Potency'])
+                        dev_profiles[user_id]['Activity'].append(word_dict[word]['Avg_Activity'])
+
+            for value in user_data['issue_comments']:
+                if value['body'] is not None:
+                    text = word_tokenize(value['body'].lower())
+                    for word in text:
+                        if word in word_dict:
+                            dev_profiles[user_id]['Evaluation'].append(word_dict[word]['Avg_Evaluation'])
+                            dev_profiles[user_id]['Potency'].append(word_dict[word]['Avg_Potency'])
+                            dev_profiles[user_id]['Activity'].append(word_dict[word]['Avg_Activity'])
+
+            for value in user_data['pull_requests']:
+                text = ''
+                if value['title'] is not None and value['body'] is not None:
+                    text = word_tokenize((value['title'] + ' ' + value['body']).lower())
+                elif value['body'] is not None:
+                    text = word_tokenize(value['body'].lower())
+                elif value['title'] is not None:
+                    text = word_tokenize(value['title'].lower())
+                for word in text:
+                    if word in word_dict:
+                        dev_profiles[user_id]['Evaluation'].append(word_dict[word]['Avg_Evaluation'])
+                        dev_profiles[user_id]['Potency'].append(word_dict[word]['Avg_Potency'])
+                        dev_profiles[user_id]['Activity'].append(word_dict[word]['Avg_Activity'])
+
+            for value in user_data['review_comments']:
+                if value['body'] is not None:
+                    text = word_tokenize(value['body'].lower())
+                    for word in text:
+                        if word in word_dict:
+                            dev_profiles[user_id]['Evaluation'].append(word_dict[word]['Avg_Evaluation'])
+                            dev_profiles[user_id]['Potency'].append(word_dict[word]['Avg_Potency'])
+                            dev_profiles[user_id]['Activity'].append(word_dict[word]['Avg_Activity'])
+
+            for value in user_data['commits']:
+                if value['message'] is not None:
+                    text = word_tokenize(value['message'].lower())
+                    for word in text:
+                        if word in word_dict:
+                            dev_profiles[user_id]['Evaluation'].append(word_dict[word]['Avg_Evaluation'])
+                            dev_profiles[user_id]['Potency'].append(word_dict[word]['Avg_Potency'])
+                            dev_profiles[user_id]['Activity'].append(word_dict[word]['Avg_Activity'])
+
+            for value in user_data['commit_comments']:
+                if value['body'] is not None:
+                    text = word_tokenize(value['body'].lower())
+                    for word in text:
+                        if word in word_dict:
+                            dev_profiles[user_id]['Evaluation'].append(word_dict[word]['Avg_Evaluation'])
+                            dev_profiles[user_id]['Potency'].append(word_dict[word]['Avg_Potency'])
+                            dev_profiles[user_id]['Activity'].append(word_dict[word]['Avg_Activity'])
+
+            fig, ax = plt.subplots(nrows=1, ncols=3)
+            plt.figure(figsize=(10, 5))
+            plt.subplot(1, 3, 1)
+            plt.hist(dev_profiles[user_id]['Evaluation'])
+            plt.ylabel('Evaluation for ' + user_id)
+
+            plt.subplot(1, 3, 2)
+            plt.hist(dev_profiles[user_id]['Potency'])
+            plt.ylabel('Potency for ' + user_id)
+
+            plt.subplot(1, 3, 3)
+            plt.hist(dev_profiles[user_id]['Activity'])
+            plt.ylabel('Activity for ' + user_id)
+
+            plt.savefig('data/epa/dev_profiles/%s' % user_id)
+            plt.close()
+
 
 if __name__ == '__main__':
-    preprocess()
+    profile_devs("data/user/google/guava.json")
