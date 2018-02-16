@@ -113,23 +113,28 @@ def profile_devs(dataset):
                             dev_profiles[user_id]['Potency'].append(word_dict[word]['Avg_Potency'])
                             dev_profiles[user_id]['Activity'].append(word_dict[word]['Avg_Activity'])
 
-            fig, ax = plt.subplots(nrows=1, ncols=3)
-            plt.figure(figsize=(10, 5))
-            plt.subplot(1, 3, 1)
-            plt.hist(dev_profiles[user_id]['Evaluation'])
-            plt.ylabel('Evaluation for ' + user_id)
+            if len(dev_profiles[user_id]['Evaluation']) > 100:
+                dev_profiles[user_id]['Evaluation'] = [x/sum(dev_profiles[user_id]['Evaluation']) for x in dev_profiles[user_id]['Evaluation']]
+                dev_profiles[user_id]['Potency'] = [x/sum(dev_profiles[user_id]['Potency']) for x in dev_profiles[user_id]['Potency']]
+                dev_profiles[user_id]['Activity'] = [x/sum(dev_profiles[user_id]['Activity']) for x in dev_profiles[user_id]['Activity']]
 
-            plt.subplot(1, 3, 2)
-            plt.hist(dev_profiles[user_id]['Potency'])
-            plt.ylabel('Potency for ' + user_id)
+                fig, ax = plt.subplots(nrows=1, ncols=3)
+                plt.figure(figsize=(30, 10))
+                plt.subplot(1, 3, 1)
+                plt.hist(dev_profiles[user_id]['Evaluation'], bins=20)
+                plt.ylabel('Evaluation for ' + user_id)
 
-            plt.subplot(1, 3, 3)
-            plt.hist(dev_profiles[user_id]['Activity'])
-            plt.ylabel('Activity for ' + user_id)
+                plt.subplot(1, 3, 2)
+                plt.hist(dev_profiles[user_id]['Potency'], bins=20)
+                plt.ylabel('Potency for ' + user_id)
 
-            plt.savefig('data/epa/dev_profiles/%s' % user_id)
-            plt.close()
+                plt.subplot(1, 3, 3)
+                plt.hist(dev_profiles[user_id]['Activity'], bins=20)
+                plt.ylabel('Activity for ' + user_id)
+
+                plt.savefig('data/epa/dev_profiles/%s' % user_id)
+                plt.close()
 
 
 if __name__ == '__main__':
-    profile_devs("data/user/google/guava.json")
+    profile_devs("data/user/facebook/hhvm.json")
