@@ -30,7 +30,7 @@ def rate_reset_wait(headers):
         return "Positive RateLimit"
 
 
-def generic(request_url, headers=None, num_pages=1):
+def generic(request_url, headers=None, num_pages=1, iterable=True):
     merged_response = list()
     for i0 in range(num_pages):
         # print("Request:", request_url)
@@ -40,13 +40,19 @@ def generic(request_url, headers=None, num_pages=1):
             response = requests.get(request_url, auth=http_auth)
         wait_status = rate_reset_wait(response.headers)
         if wait_status == "Positive RateLimit":
-            merged_response.extend(response.json())
+            if iterable:
+                merged_response.extend(response.json())
+            else:
+                merged_response.append(response.json())
         else:
             if headers is not None:
                 response = requests.get(request_url, auth=http_auth, headers=headers)
             else:
                 response = requests.get(request_url, auth=http_auth)
-            merged_response.extend(response.json())
+            if iterable:
+                merged_response.extend(response.json())
+            else:
+                merged_response.append(response.json())
 
         # Change request_url to next url in the link
         if 'Link' in response.headers:
@@ -72,14 +78,22 @@ def commits(full_repo_name, num_pages=1):
     return generic(request_url, headers=reactions_header, num_pages=num_pages)
 
 
-def pull_requests(full_repo_name, num_pages=1):
-    request_url = 'https://api.github.com/repos/%s/pulls' % full_repo_name
-    return generic(request_url, headers=reactions_header, num_pages=num_pages)
+def pull_requests(full_repo_name, num_pages=1, pr_number=None):
+    if pr_number is None:
+        request_url = 'https://api.github.com/repos/%s/pulls' % full_repo_name
+        return generic(request_url, headers=reactions_header, num_pages=num_pages)
+    else:
+        request_url = 'https://api.github.com/repos/%s/pulls/%s' % (full_repo_name, pr_number)
+        return generic(request_url, headers=reactions_header, num_pages=num_pages, iterable=False)
 
 
-def issues(full_repo_name, num_pages=1):
-    request_url = 'https://api.github.com/repos/%s/issues' % full_repo_name
-    return generic(request_url, headers=reactions_header, num_pages=num_pages)
+def issues(full_repo_name, num_pages=1, issue_number=None):
+    if issue_number is None:
+        request_url = 'https://api.github.com/repos/%s/issues' % full_repo_name
+        return generic(request_url, headers=reactions_header, num_pages=num_pages)
+    else:
+        request_url = 'https://api.github.com/repos/%s/pulls/%s' % (full_repo_name, issue_number)
+        return generic(request_url, headers=reactions_header, num_pages=num_pages, iterable=False)
 
 
 def commit_comments(full_repo_name, num_pages=1, commit_ref=None):
@@ -87,8 +101,8 @@ def commit_comments(full_repo_name, num_pages=1, commit_ref=None):
         request_url = 'https://api.github.com/repos/%s/comments' % full_repo_name
         return generic(request_url, headers=reactions_header, num_pages=num_pages)
     else:
-        request_url = 'https://api.github.com/repos/%s/commits/%s/comments' % full_repo_name, commit_ref
-        return generic(request_url, headers=reactions_header)
+        request_url = 'https://api.github.com/repos/%s/commits/%s/comments' % (full_repo_name, commit_ref)
+        return generic(request_url, headers=reactions_header, iterable=False, num_pages=num_pages)
 
 
 def review_comments(full_repo_name, num_pages=1, pr_number=None):
@@ -96,8 +110,8 @@ def review_comments(full_repo_name, num_pages=1, pr_number=None):
         request_url = 'https://api.github.com/repos/%s/pulls/comments' % full_repo_name
         return generic(request_url, headers=reactions_header, num_pages=num_pages)
     else:
-        request_url = 'https://api.github.com/repos/%s/pulls/%s/comments' % full_repo_name, pr_number
-        return generic(request_url, headers=reactions_header)
+        request_url = 'https://api.github.com/repos/%s/pulls/%s/comments' % (full_repo_name, pr_number)
+        return generic(request_url, headers=reactions_header, num_pages=num_pages)
 
 
 def issue_comments(full_repo_name, num_pages=1, issue_number=None):
@@ -105,5 +119,5 @@ def issue_comments(full_repo_name, num_pages=1, issue_number=None):
         request_url = 'https://api.github.com/repos/%s/issues/comments' % full_repo_name
         return generic(request_url, headers=reactions_header, num_pages=num_pages)
     else:
-        request_url = 'https://api.github.com/repos/%s/issues/%s/comments' % full_repo_name, issue_number
-        return generic(request_url, headers=reactions_header)
+        request_url = 'https://api.github.com/repos/%s/issues/%s/comments' % (full_repo_name, issue_number)
+        return generic(request_url, headers=reactions_header, num_pages=num_pages)
