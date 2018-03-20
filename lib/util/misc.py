@@ -22,7 +22,3 @@ def filter_repo_reaper(dataset_path):
     reaper_df = reaper_df.query('stars > 100 and scorebased_org == 1 and randomforest_org == 1 and scorebased_utl == 1 and randomforest_utl == 1')
     print("Repos left after filtering:", len(reaper_df))
     reaper_df.to_csv("reaper_100.csv", columns=['repository'])
-
-
-if __name__ == '__main__':
-    filter_repo_reaper(dataset_path="./data/repo_reaper/dataset.csv")
