@@ -1,5 +1,5 @@
-import gensim
 import numpy as np
+import gensim
 
 
 def train_tensorflow():
@@ -52,9 +52,9 @@ if __name__ == '__main__':
     # print('patch', [x[0] for x in w2v.most_similar('patch')])
     # print('tree', [x[0] for x in w2v.most_similar('tree')])
     # print('ssh', [x[0] for x in w2v.most_similar('ssh')])
-    # print('rails', [x[0] for x in w2v.most_similar('rails')])
-    print('android', [x[0] for x in w2v.most_similar('android')])
-    print('call', [x[0] for x in w2v.most_similar('call')])
+    # print('whitespace', [x[0] for x in w2v.most_similar('whitespace')])
+    # print('android', [x[0] for x in w2v.most_similar('android')])
+    print('account', [x[0] for x in w2v.most_similar('account')])
 
     w2v = load_gensim('data/embedding/word2vec/googlenews_size300.bin', binary=True)
     print("Google:")
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     # print('patch', [x[0] for x in w2v.most_similar('patch')])
     # print('tree', [x[0] for x in w2v.most_similar('tree')])
     # print('ssh', [x[0] for x in w2v.most_similar('ssh')])
-    # print('rails', [x[0] for x in w2v.most_similar('rails')])
-    print('android', [x[0] for x in w2v.most_similar('android')])
-    print('call', [x[0] for x in w2v.most_similar('call')])
+    # print('whitespace', [x[0] for x in w2v.most_similar('whitespace')])
+    # print('android', [x[0] for x in w2v.most_similar('android')])
+    print('account', [x[0] for x in w2v.most_similar('account')])
 
