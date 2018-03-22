@@ -1,3 +1,6 @@
+from lib.util import mediawiki, ngram
+from gensim.models import phrases
+from lib.data import fetch
 import numpy as np
 import gensim
 
@@ -43,29 +46,34 @@ def embedding_matrix(word_index, model_path='data/embedding/word2vec/gensim_size
 
 
 if __name__ == '__main__':
-    w2v = load_gensim()
+    # bigram_model, trigram_model = ngram.load()
+    # bigram_phraser = phrases.Phraser(bigram_model)
+    # trigram_phraser = phrases.Phraser(trigram_model)
+    # token_matrix = np.concatenate((mediawiki.fetch(detect_ngrams=False), fetch.complete_text()))
+    # w2v = train_gensim(trigram_phraser[bigram_phraser[token_matrix]])
+    # w2v = load_gensim('data/embedding/word2vec/gensim_size50_min5')
     print("Custom:")
     print("Vocab. size:", len(w2v.wv.vocab))
-    # print('repo', [x[0] for x in w2v.most_similar('repo')])
-    # print('fork', [x[0] for x in w2v.most_similar('fork')])
-    # print('branch', [x[0] for x in w2v.most_similar('branch')])
-    # print('patch', [x[0] for x in w2v.most_similar('patch')])
-    # print('tree', [x[0] for x in w2v.most_similar('tree')])
-    # print('ssh', [x[0] for x in w2v.most_similar('ssh')])
-    # print('whitespace', [x[0] for x in w2v.most_similar('whitespace')])
-    # print('android', [x[0] for x in w2v.most_similar('android')])
+    print('repo', [x[0] for x in w2v.most_similar('repo')])
+    print('fork', [x[0] for x in w2v.most_similar('fork')])
+    print('branch', [x[0] for x in w2v.most_similar('branch')])
+    print('patch', [x[0] for x in w2v.most_similar('patch')])
+    print('tree', [x[0] for x in w2v.most_similar('tree')])
+    print('ssh', [x[0] for x in w2v.most_similar('ssh')])
+    print('whitespace', [x[0] for x in w2v.most_similar('whitespace')])
+    print('android', [x[0] for x in w2v.most_similar('android')])
     print('account', [x[0] for x in w2v.most_similar('account')])
 
-    w2v = load_gensim('data/embedding/word2vec/googlenews_size300.bin', binary=True)
+    w2v = load_gensim('data/embedding/word2vec/gensim_size300_min5')
     print("Google:")
     print("Vocab. size:", len(w2v.wv.vocab))
-    # print('repo', [x[0] for x in w2v.most_similar('repo')])
-    # print('fork', [x[0] for x in w2v.most_similar('fork')])
-    # print('branch', [x[0] for x in w2v.most_similar('branch')])
-    # print('patch', [x[0] for x in w2v.most_similar('patch')])
-    # print('tree', [x[0] for x in w2v.most_similar('tree')])
-    # print('ssh', [x[0] for x in w2v.most_similar('ssh')])
-    # print('whitespace', [x[0] for x in w2v.most_similar('whitespace')])
-    # print('android', [x[0] for x in w2v.most_similar('android')])
+    print('repo', [x[0] for x in w2v.most_similar('repo')])
+    print('fork', [x[0] for x in w2v.most_similar('fork')])
+    print('branch', [x[0] for x in w2v.most_similar('branch')])
+    print('patch', [x[0] for x in w2v.most_similar('patch')])
+    print('tree', [x[0] for x in w2v.most_similar('tree')])
+    print('ssh', [x[0] for x in w2v.most_similar('ssh')])
+    print('whitespace', [x[0] for x in w2v.most_similar('whitespace')])
+    print('android', [x[0] for x in w2v.most_similar('android')])
     print('account', [x[0] for x in w2v.most_similar('account')])
 

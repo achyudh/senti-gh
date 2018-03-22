@@ -1,6 +1,6 @@
 from nltk.tokenize import word_tokenize
 from lib.util import preprocessing, ngram
-from gensim.models  import phrases
+from gensim.models import phrases
 from tinydb import TinyDB
 import matplotlib.pyplot as plt
 import json

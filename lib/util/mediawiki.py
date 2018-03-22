@@ -1,15 +1,19 @@
+from nltk.tokenize import word_tokenize, sent_tokenize
+from wikipedia.exceptions import PageError
+from gensim.models import phrases
+from lib.util import db, ngram
+from tinydb import TinyDB
 import wikipedia, datetime, os
 import numpy as np
-from tinydb import TinyDB
-from nltk.tokenize import word_tokenize, sent_tokenize
-from lib.util import db
-from wikipedia.exceptions import PageError
 
 wikipedia.set_rate_limiting(200, min_wait=datetime.timedelta(0, 0, 500000))
 
 
-def fetch(dataset_path="data/wikipedia/content", tokenize_words=True, tokenize_sentences=True):
+def fetch(dataset_path="data/wikipedia/content", tokenize_words=True, tokenize_sentences=True, detect_ngrams=False):
     token_matrix = list()
+    bigram_model, trigram_model = ngram.load()
+    bigram_phraser = phrases.Phraser(bigram_model)
+    trigram_phraser = phrases.Phraser(trigram_model)
     for filename in os.listdir(dataset_path):
         if filename.endswith(".json"):
             db = TinyDB(os.path.join(dataset_path, filename))
@@ -22,7 +26,10 @@ def fetch(dataset_path="data/wikipedia/content", tokenize_words=True, tokenize_s
                     token_matrix.extend(word_tokenize(entry['content'].lower()))
                 else:
                     token_matrix.append(entry['content'].lower())
-    return np.array(token_matrix)
+    if detect_ngrams:
+        return trigram_phraser[bigram_phraser[token_matrix]]
+    else:
+        return np.array(token_matrix)
 
 
 def download(page_ids, db_path):
