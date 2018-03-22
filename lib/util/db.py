@@ -30,3 +30,4 @@ def query_wiki(page_id, db_path):
     query_obj = Query()
     db = TinyDB(db_path)
     return db.search(query_obj.id == page_id)
+
