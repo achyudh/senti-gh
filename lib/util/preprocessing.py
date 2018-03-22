@@ -1,20 +1,23 @@
+from tinydb import TinyDB
 
 
 def user_ipa_count(dataset):
     result = dict()
-    with open(dataset) as csv_file:
-        _first_line = csv_file.readline()
-        for line in csv_file:
-            split_line = line.split(',')
-            if split_line[4] not in result:
-                result[split_line[4]] = dict()
-                result[split_line[4]]['a'] = 0
-                result[split_line[4]]['b'] = 0
-                result[split_line[4]]['c'] = 0
-                result[split_line[4]]['d'] = 0
-            for category in split_line[1]:
-                if category != '-':
-                    result[split_line[4]][category.lower()] += 1
+    db = TinyDB(dataset)
+    for entry in db:
+        for thread in entry.values():
+            for comment in thread['comments']:
+                if 'ipa' in comment:
+                    user_login = comment['user']['login']
+                    category = comment['ipa']
+                    if user_login not in result:
+                        result[user_login] = dict()
+                        result[user_login]['a'] = 0
+                        result[user_login]['b'] = 0
+                        result[user_login]['c'] = 0
+                        result[user_login]['d'] = 0
+                    if category != '-':
+                        result[user_login][category.lower()] += 1
     for v in result.values():
         sum = v['a'] + v['b'] + v['c'] + v['d']
         if sum != 0:
@@ -24,3 +27,5 @@ def user_ipa_count(dataset):
             v['d'] = v['d']/sum
     return result
 
+if __name__ == '__main__':
+    user_ipa = user_ipa_count("data/labelled/pull_requests/tensorflow.json")
