@@ -71,7 +71,11 @@ if __name__ == '__main__':
     bigram_model, trigram_model = ngram.load()
     bigram_phraser = phrases.Phraser(bigram_model)
     trigram_phraser = phrases.Phraser(trigram_model)
-    data_x = np.array([word_tokenize(trigram_phraser[bigram_phraser[x.lower()]]) for x in data[:,0]])
+    data_xt = trigram_phraser[bigram_phraser[data[:,0]]]
+    data_x = list()
+    for x in data_xt:
+        data_x.append([word_tokenize(x.lower())])
+    data_x = np.array(data_x)
     data_y = [int(x) for x in data[:,1]]
     # data_x, reaction_matrix = fetch.sentences_with_reactions("data/user", tokenize=False)
     # data_y = reaction_matrix[:, 0]
