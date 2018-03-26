@@ -27,5 +27,18 @@ def user_ipa_count(dataset):
             v['d'] = v['d']/sum
     return result
 
+
+def read_csv(path, headers=True):
+    result = list()
+    with open(path) as csv_file:
+        if headers:
+            _temp = csv_file.readline()
+        for line in csv_file:
+            if line.strip() is not "":
+                split_line = [x.strip() for x in line.strip().split(',')]
+                if split_line[0] is not "":
+                    result.append(split_line)
+    return result
+
 if __name__ == '__main__':
     user_ipa = user_ipa_count("data/labelled/pull_requests/tensorflow.json")
