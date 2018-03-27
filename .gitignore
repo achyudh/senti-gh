@@ -28,3 +28,5 @@ data/wikipedia/titles/
 data/ngram/
 
 data/epa/
+
+data/embedding/fasttext/

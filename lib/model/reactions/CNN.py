@@ -69,13 +69,7 @@ if __name__ == '__main__':
     num_classes = 2
     data = pd.read_csv("data/labelled/JIRA.csv").as_matrix()
     bigram_model, trigram_model = ngram.load()
-    bigram_phraser = phrases.Phraser(bigram_model)
-    trigram_phraser = phrases.Phraser(trigram_model)
-    data_xt = trigram_phraser[bigram_phraser[data[:,0]]]
-    data_x = list()
-    for x in data_xt:
-        data_x.append([word_tokenize(x.lower())])
-    data_x = np.array(data_x)
+    data_x = np.array(([word_tokenize(x.lower()) for x in data[:,0]]))
     data_y = [int(x) for x in data[:,1]]
     # data_x, reaction_matrix = fetch.sentences_with_reactions("data/user", tokenize=False)
     # data_y = reaction_matrix[:, 0]

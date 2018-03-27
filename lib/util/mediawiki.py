@@ -11,9 +11,6 @@ wikipedia.set_rate_limiting(200, min_wait=datetime.timedelta(0, 0, 500000))
 
 def fetch(dataset_path="data/wikipedia/content", tokenize_words=True, tokenize_sentences=True, detect_ngrams=False):
     token_matrix = list()
-    bigram_model, trigram_model = ngram.load()
-    bigram_phraser = phrases.Phraser(bigram_model)
-    trigram_phraser = phrases.Phraser(trigram_model)
     for filename in os.listdir(dataset_path):
         if filename.endswith(".json"):
             db = TinyDB(os.path.join(dataset_path, filename))
@@ -27,6 +24,9 @@ def fetch(dataset_path="data/wikipedia/content", tokenize_words=True, tokenize_s
                 else:
                     token_matrix.append(entry['content'].lower())
     if detect_ngrams:
+        bigram_model, trigram_model = ngram.load()
+        bigram_phraser = phrases.Phraser(bigram_model)
+        trigram_phraser = phrases.Phraser(trigram_model)
         return trigram_phraser[bigram_phraser[token_matrix]]
     else:
         return np.array(token_matrix)
