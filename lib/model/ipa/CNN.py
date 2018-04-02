@@ -48,7 +48,7 @@ def train_dual(train_x, train_y, evaluate_x, evaluate_y, embedding_map_1, embedd
         cnn_model = Model(sequence_input, preds)
         cnn_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         cnn_model.summary()
-        cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=12, batch_size=128)
+        cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=8, batch_size=128)
     return cnn_model
 
 
@@ -58,21 +58,19 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
                                 input_length=max_sequence_len, trainable=False)
         sequence_input = Input(shape=(max_sequence_len,), dtype='int32')
         embedded_sequences_1 = embedding_layer_1(sequence_input)
-        l_conv1= Conv1D(300, 10, activation='relu', padding='valid',)(embedded_sequences_1)
+        l_conv1= Conv1D(250, 10, activation='relu', padding='valid',)(embedded_sequences_1)
         l_pool1 = MaxPooling1D(5)(l_conv1)
-        l_conv2 = Conv1D(200, 5, activation='relu')(l_pool1)
+        l_conv2 = Conv1D(150, 5, activation='relu')(l_pool1)
         l_pool3 = GlobalMaxPool1D()(l_conv2)
-        l_dense1 = Dense(120, activation='relu')(l_pool3)
+        l_dense1 = Dense(80, activation='relu')(l_pool3)
         l_dropout1 = Dropout(0.2)(l_dense1)
-        l_dense2 = Dense(60, activation='relu')(l_dropout1)
+        l_dense2 = Dense(20, activation='relu')(l_dropout1)
         l_dropout2 = Dropout(0.2)(l_dense2)
-        l_dense3 = Dense(20, activation='relu')(l_dropout2)
-        l_dropout3 = Dropout(0.2)(l_dense3)
-        preds = Dense(num_classes, activation='sigmoid')(l_dropout3)
+        preds = Dense(num_classes, activation='sigmoid')(l_dropout2)
         cnn_model = Model(sequence_input, preds)
         cnn_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         cnn_model.summary()
-        cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=12, batch_size=128)
+        cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=8, batch_size=128)
     return cnn_model
 
 
