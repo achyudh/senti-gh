@@ -5,9 +5,10 @@ import numpy as np
 
 
 def train(train_x, train_y):
-    linear_regressor = RandomForestRegressor(n_estimators=100)
-    linear_regressor.fit(train_x, train_y)
-    return linear_regressor
+    regressor = RandomForestRegressor(n_estimators=100)
+    regressor.fit(train_x, train_y)
+    return regressor
+
 
 
 def predict(regressor, predict_x):
