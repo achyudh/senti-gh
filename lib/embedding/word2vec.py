@@ -25,14 +25,14 @@ def train_gensim(X, size=100, min_count=5):
     return model
 
 
-def load_gensim(model_path='data/embedding/word2vec/gensim_size100_min5', binary=False):
+def load_gensim(model_path='data/embedding/word2vec/gensim_size300_min5', binary=False):
     if binary:
         return gensim.models.KeyedVectors.load_word2vec_format(model_path, binary=True)
     else:
         return gensim.models.Word2Vec.load(model_path)
 
 
-def embedding_matrix(word_index, model_path='data/embedding/word2vec/gensim_size100_min5', binary=False):
+def embedding_matrix(word_index, model_path='data/embedding/word2vec/gensim_size300_min5', binary=False):
     if binary:
         size = int(model_path.split('.')[-2].split('/')[-1].split('_')[1][4:])
     else:

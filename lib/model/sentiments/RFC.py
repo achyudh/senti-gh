@@ -1,11 +1,9 @@
-from lib.embedding.glove import load_glove6B
-from lib.embedding.vectorizer import TfidfEmbeddingVectorizer
-from sklearn.metrics import precision_recall_fscore_support
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 from sklearn.model_selection import StratifiedKFold
-from lib.embedding.word2vec import train_gensim, load_gensim
-from lib.embedding.vectorizer import HybridEmbeddingVectorizer
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
+from lib.embedding.vectorizer import HybridEmbeddingVectorizer
+from lib.embedding.word2vec import train_gensim, load_gensim
 from lib.data import fetch
 import numpy as np
 
@@ -13,7 +11,7 @@ import numpy as np
 def train(train_x, train_y, w2v1, w2v2, dim1, dim2):
     rfc_pipeline = Pipeline([
         ("TfidfEmbeddingVectorizer", HybridEmbeddingVectorizer(w2v1, w2v2, dim1, dim2)),
-        ("RandomForestClassifier", RandomForestClassifier(n_estimators=300, n_jobs=8))])
+        ("RandomForestClassifier", RandomForestClassifier(n_estimators=500, n_jobs=8))])
     rfc_pipeline.fit(train_x, train_y)
     return rfc_pipeline
 
@@ -46,17 +44,10 @@ def cross_val(data_x, data_y, w2v1, w2v2, dim1, dim2, n_splits=5):
 
 
 if __name__ == '__main__':
-    data_x, data_y = fetch.labelled_comments("./data/labelled/pull_requests/agrees.csv")
+    data_x, reaction_matrix = fetch.text_with_reactions("data/user")
+    data_x = np.array(data_x)
+    data_y = reaction_matrix[:, 0]
+    print("Reaction skew for +1", sum(reaction_matrix[:, 0]) / len(reaction_matrix[:, 0]))
     w2v1 = load_gensim('data/embedding/word2vec/gensim_size300_min5')
     w2v2 = load_gensim('data/embedding/word2vec/googlenews_size300.bin', binary=True)
-    print("Agrees:")
-    cross_val(data_x, data_y, w2v1, w2v2, 300, 300, n_splits=5)
-    # data_x, data_y = fetch.labelled_comments("./data/labelled/pull_requests/agrees_further.csv")
-    # print("Agrees further:")
-    # cross_val(data_x, data_y, w2v, n_splits=5)
-    data_x, data_y = fetch.labelled_comments("./data/labelled/pull_requests/gives_opinion.csv")
-    print("Gives opinion:")
-    cross_val(data_x, data_y, w2v1, w2v2, 300, 300, n_splits=5)
-    data_x, data_y = fetch.labelled_comments("./data/labelled/pull_requests/grouped_emotions.csv")
-    print("Grouped emotions:")
     cross_val(data_x, data_y, w2v1, w2v2, 300, 300, n_splits=5)

@@ -28,12 +28,9 @@ def load_gensim(model_path='data/embedding/fasttext/gensim_size100_min5'):
     return gensim.models.FastText.load(model_path)
 
 
-def embedding_matrix(word_index, model_path='data/embedding/fasttext/gensim_size100_min5', binary=False):
-    if binary:
-        size = int(model_path.split('.')[-2].split('/')[-1].split('_')[1][4:])
-    else:
-        size = int(model_path.split('/')[-1].split('_')[1][4:])
-    w2v = load_gensim(model_path, binary)
+def embedding_matrix(word_index, model_path='data/embedding/fasttext/gensim_size300_min5'):
+    size = int(model_path.split('/')[-1].split('_')[1][4:])
+    w2v = load_gensim(model_path)
     embedding_map = np.zeros((len(word_index) + 1, size))
     for word, i in word_index.items():
         if word in w2v:

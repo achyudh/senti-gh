@@ -9,6 +9,7 @@ from tensorflow.python.keras.preprocessing.text import Tokenizer
 from tensorflow.python.keras.preprocessing.sequence import pad_sequences
 from gensim.models import phrases
 from nltk.tokenize import word_tokenize
+from tinydb import TinyDB
 from lib.data import fetch
 from lib.util import preprocessing, ngram
 import tensorflow as tf
@@ -61,9 +62,9 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
         l_pool1 = MaxPooling1D(5)(l_conv1)
         l_conv2 = Conv1D(150, 5, activation='relu')(l_pool1)
         l_pool3 = GlobalMaxPool1D()(l_conv2)
-        l_dense1 = Dense(100, activation='relu')(l_pool3)
+        l_dense1 = Dense(80, activation='relu')(l_pool3)
         l_dropout1 = Dropout(0.2)(l_dense1)
-        l_dense2 = Dense(50, activation='relu')(l_dropout1)
+        l_dense2 = Dense(20, activation='relu')(l_dropout1)
         l_dropout2 = Dropout(0.2)(l_dense2)
         preds = Dense(num_classes, activation='sigmoid')(l_dropout2)
         cnn_model = Model(sequence_input, preds)
@@ -120,15 +121,29 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, nu
 
 if __name__ == '__main__':
     embedding_dim_1 =  embedding_dim_2 = 300
-    num_classes = 3
-    data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
-    data_x = np.array(([word_tokenize(x.lower()) for x in data[:,0]]))
-    data_y = [int(x) for x in data[:,1]]
-    # data_x, reaction_matrix = fetch.sentences_with_reactions("data/user", tokenize=False)
-    # data_y = reaction_matrix[:, 0]
+    num_classes = 4
+    dataset_list = ['data/labelled/pull_requests/spring.json', 'data/labelled/pull_requests/oni.json', 'data/labelled/pull_requests/tensorflow.json']
+    label_map = {"a": 0, "b": 1, "c": 2, "d": 3}
+    data_xs = set()
+    data_x = list()
+    data_y = list()
+    for dataset_path in dataset_list:
+        db = TinyDB(dataset_path)
+        for entry in db:
+            for thread in entry.values():
+                for comment in thread['comments']:
+                    if 'ipa' in comment and comment['ipa'] != '-':
+                        comment_body = comment['body'].lower()
+                        if comment_body not in data_xs:
+                            data_xs.add(comment_body)
+                            data_x.append(comment_body)
+                            data_y.append(label_map[comment['ipa'].lower()])
+
+    data_x = np.array(data_x)
+    print(len(data_y), len(data_x))
     tokenizer = Tokenizer()
-    tokenizer.fit_on_texts(data[:,0])
-    sequences = tokenizer.texts_to_sequences(data[:,0])
+    tokenizer.fit_on_texts(data_x)
+    sequences = tokenizer.texts_to_sequences(data_x)
     max_sequence_len = max(len(seq) for seq in sequences)
     max_sequence_len = min(500, max_sequence_len)
     data_x = pad_sequences(sequences, maxlen=max_sequence_len)
@@ -136,5 +151,5 @@ if __name__ == '__main__':
     word_index = tokenizer.word_index
     embedding_map_1 = word2vec.embedding_matrix(word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
     embedding_map_2 = word2vec.embedding_matrix(word_index)
-    # cross_val(data_x, data_y_cat, embedding_map_2, embedding_dim_2,max_sequence_len, num_classes, n_splits=10)
-    cross_val_dual(data_x, data_y_cat, embedding_map_1, embedding_map_2, embedding_dim_1, embedding_dim_2,max_sequence_len, num_classes, n_splits=10)
+    cross_val(data_x, data_y_cat, embedding_map_2, embedding_dim_2,max_sequence_len, num_classes, n_splits=10)
+    # cross_val_dual(data_x, data_y_cat, embedding_map_1, embedding_map_2, embedding_dim_1, embedding_dim_2,max_sequence_len, num_classes, n_splits=10)
