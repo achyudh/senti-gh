@@ -43,7 +43,7 @@ def train_dual(train_x, train_y, evaluate_x, evaluate_y, embedding_map_1, embedd
         l_dropout2 = Dropout(0.2)(l_dense2)
         l_dense3 = Dense(20, activation='relu')(l_dropout2)
         l_dropout3 = Dropout(0.2)(l_dense3)
-        preds = Dense(num_classes, activation='sigmoid')(l_dropout3)
+        preds = Dense(num_classes, activation='softmax')(l_dropout3)
 
         cnn_model = Model(sequence_input, preds)
         cnn_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -151,5 +151,5 @@ if __name__ == '__main__':
     word_index = tokenizer.word_index
     embedding_map_1 = word2vec.embedding_matrix(word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
     embedding_map_2 = word2vec.embedding_matrix(word_index)
-    cross_val(data_x, data_y_cat, embedding_map_2, embedding_dim_2,max_sequence_len, num_classes, n_splits=10)
+    cross_val(data_x, data_y_cat, embedding_map_1, embedding_dim_1, max_sequence_len, num_classes, n_splits=10)
     # cross_val_dual(data_x, data_y_cat, embedding_map_1, embedding_map_2, embedding_dim_1, embedding_dim_2,max_sequence_len, num_classes, n_splits=10)
