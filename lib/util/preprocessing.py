@@ -1,5 +1,5 @@
 from tinydb import TinyDB
-
+import numpy as np
 
 def user_ipa_count(dataset):
     result = dict()
@@ -40,5 +40,18 @@ def read_csv(path, headers=True):
                     result.append(split_line)
     return result
 
+
+def to_extended_categorical(y, num_classes=None):
+    y = np.array(y, dtype='int').ravel()
+    if not num_classes:
+        num_classes = np.max(y) + 1
+    n = y.shape[0]
+    categorical = np.zeros((n, num_classes))
+    for i in range(n):
+        if y[i] != -1:
+            categorical[i, y[i]] = 1
+    return categorical
+
+
 if __name__ == '__main__':
-    user_ipa = user_ipa_count("data/labelled/pull_requests/tensorflow.json")
+    print(to_extended_categorical([1, 2, -1, 0, 1, 0, 2, 0, -1], 3))

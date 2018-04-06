@@ -35,5 +35,6 @@ def remove_duplicate_entries(dataset):
     with open(dataset, 'w') as json_file:
         json.dump(db, json_file)
 
+
 if __name__ == '__main__':
     remove_duplicate_entries("data/user/tensorflow/tensorflow.json")
