@@ -20,13 +20,13 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
         embedded_sequences_1 = embedding_layer_1(sequence_input)
         l_lstm = Bidirectional(LSTM(200, dropout=0.2, recurrent_dropout=0.2))(embedded_sequences_1)
         l_dense1 = Dense(50, activation='relu')(l_lstm)
-        l_dropout1 = Dropout(0.4)(l_dense1)
-        preds = Dense(num_classes, activation='softmax')(l_dropout1)
+        # l_dropout1 = Dropout(0.4)(l_dense1)
+        preds = Dense(num_classes, activation='softmax')(l_dense1)
         cnn_model = Model(sequence_input, preds)
         cnn_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         cnn_model.summary()
         early_stopping_callback = EarlyStopping(patience=2, monitor='val_acc')
-        cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=10, batch_size=64,
+        cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=20, batch_size=128,
                       callbacks=[early_stopping_callback])
     return cnn_model
 
@@ -43,7 +43,7 @@ def evaluate(classifier, evaluate_x, evaluate_y):
 
 
 def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, num_classes, n_splits=5):
-    skf = StratifiedKFold(n_splits)
+    skf = StratifiedKFold(n_splits, random_state=157)
     print("Performing cross validation (%d-fold)..." % n_splits)
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
@@ -61,7 +61,7 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, nu
 
 if __name__ == '__main__':
     embedding_dim_1 = embedding_dim_2 = 300
-    num_classes = 2
+    num_classes = 3
     # data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
     data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
     data_x = np.array(([x.lower() for x in data[:,0]]))
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     sequences = tokenizer.texts_to_sequences(data[:,0])
     seq_lengths = [len(seq) for seq in sequences]
     max_sequence_len = max(seq_lengths)
-    max_sequence_len = min(200, max_sequence_len)
+    max_sequence_len = min(400, max_sequence_len)
     data_x = pad_sequences(sequences, maxlen=max_sequence_len)
     data_y_cat = to_categorical(data_y, num_classes=num_classes)
     word_index = tokenizer.word_index
