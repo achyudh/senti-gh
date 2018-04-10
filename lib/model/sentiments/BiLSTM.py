@@ -25,7 +25,7 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
         lstm_model = Model(sequence_input, preds)
         lstm_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         lstm_model.summary()
-        early_stopping_callback = EarlyStopping(patience=2, monitor='val_acc')
+        early_stopping_callback = EarlyStopping(patience=2, monitor='val_loss')
         lstm_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=20, batch_size=64,
                       callbacks=[early_stopping_callback])
     return lstm_model
@@ -48,7 +48,10 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, nu
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
     mean_accuracy = 0
+    iteration = 0
     for train_index, test_index in skf.split(data_x, data_y.argmax(axis=1)):
+        print("Iteration %d of %d" % (iteration, n_splits))
+        iteration += 1
         cnn_pipeline = train(data_x[train_index], data_y[train_index], data_x[test_index], data_y[test_index], embedding_map, embedding_dim, max_sequence_len, num_classes)
         metrics = evaluate(cnn_pipeline, data_x[test_index], data_y[test_index])
         precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
