@@ -13,7 +13,7 @@ import numpy as np
 
 
 def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim, max_sequence_len, num_classes):
-    with tf.device('/gpu:1'):
+    with tf.device('/gpu:0'):
         sequence_input = Input(shape=(max_sequence_len,), dtype='int32')
         embedding_layer_1 = Embedding(len(word_index) + 1, embedding_dim, weights=[embedding_map],
                                 input_length=max_sequence_len, trainable=False)
@@ -22,13 +22,13 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
         l_dense1 = Dense(50, activation='relu')(l_lstm)
         # l_dropout1 = Dropout(0.4)(l_dense1)
         preds = Dense(num_classes, activation='softmax')(l_dense1)
-        cnn_model = Model(sequence_input, preds)
-        cnn_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-        cnn_model.summary()
+        lstm_model = Model(sequence_input, preds)
+        lstm_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        lstm_model.summary()
         early_stopping_callback = EarlyStopping(patience=2, monitor='val_acc')
-        cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=20, batch_size=128,
+        lstm_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=20, batch_size=64,
                       callbacks=[early_stopping_callback])
-    return cnn_model
+    return lstm_model
 
 
 def predict(classifier, predict_x):
@@ -61,10 +61,10 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, nu
 
 if __name__ == '__main__':
     embedding_dim_1 = embedding_dim_2 = 300
-    num_classes = 3
-    # data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
-    data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
-    data_x = np.array(([x.lower() for x in data[:,0]]))
+    num_classes = 2
+    data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
+    # data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
+    data_x = np.array([x.lower() for x in data[:,0]])
     data_y = [int(x) for x in data[:,1]]
     print("Dataset loaded to memory. Size:", len(data_y))
     # data_x, reaction_matrix = fetch.sentences_with_reactions("data/user", tokenize=False)
@@ -78,6 +78,6 @@ if __name__ == '__main__':
     data_x = pad_sequences(sequences, maxlen=max_sequence_len)
     data_y_cat = to_categorical(data_y, num_classes=num_classes)
     word_index = tokenizer.word_index
-    embedding_map_1 = word2vec.embedding_matrix(word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
-    # embedding_map_2 = word2vec.embedding_matrix(word_index)
+    # embedding_map_1 = word2vec.embedding_matrix(word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
+    embedding_map_1 = word2vec.embedding_matrix(word_index)
     cross_val(data_x, data_y_cat, embedding_map_1, embedding_dim_1, max_sequence_len, num_classes, n_splits=10)

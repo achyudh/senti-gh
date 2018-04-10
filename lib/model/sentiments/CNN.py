@@ -45,7 +45,7 @@ def train_dual(train_x, train_y, evaluate_x, evaluate_y, embedding_map_1, embedd
         early_stopping_callback = EarlyStopping(patience=2)
         cnn_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         cnn_model.summary()
-        cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=10, batch_size=64,
+        cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=15, batch_size=64,
                       callbacks=[early_stopping_callback])
     return cnn_model
 
@@ -69,7 +69,7 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
         early_stopping_callback = EarlyStopping(patience=2)
         cnn_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         cnn_model.summary()
-        cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=10, batch_size=64,
+        cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=15, batch_size=64,
                       callbacks=[early_stopping_callback])
     return cnn_model
 
@@ -103,7 +103,7 @@ def cross_val_dual(data_x, data_y, embedding_map_1, embedding_map_2, embedding_d
 
 
 def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, num_classes, n_splits=5):
-    skf = StratifiedKFold(n_splits)
+    skf = StratifiedKFold(n_splits, random_state=157)
     print("Performing cross validation (%d-fold)..." % n_splits)
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
@@ -120,11 +120,11 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, nu
 
 
 if __name__ == '__main__':
-    embedding_dim_1 = embedding_dim_2 = 300
-    num_classes = 2
-    data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
+    embedding_dim_1 = 300
+    num_classes = 3
+    data = pd.read_csv("data/labelled/JIRA.csv").as_matrix()
     # data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
-    data_x = np.array(([x.lower() for x in data[:,0]]))
+    data_x = np.array([x.lower() for x in data[:,0]])
     data_y = [int(x) for x in data[:,1]]
     print("Dataset loaded to memory. Size:", len(data_y))
     # data_x, reaction_matrix = fetch.sentences_with_reactions("data/user", tokenize=False)
@@ -140,6 +140,6 @@ if __name__ == '__main__':
     data_x = pad_sequences(sequences, maxlen=max_sequence_len)
     data_y_cat = to_categorical(data_y, num_classes=num_classes)
     word_index = tokenizer.word_index
-    embedding_map_1 = word2vec.embedding_matrix(word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
-    # embedding_map_2 = word2vec.embedding_matrix(word_index)
-    cross_val(data_x, data_y_cat, embedding_map_1, embedding_dim_1, max_sequence_len, num_classes, n_splits=10)
+    # embedding_map_1 = word2vec.embedding_matrix(word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
+    embedding_map_2 = word2vec.embedding_matrix(word_index)
+    cross_val(data_x, data_y_cat, embedding_map_2, embedding_dim_1, max_sequence_len, num_classes, n_splits=10)
