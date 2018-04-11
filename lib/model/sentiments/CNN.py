@@ -1,7 +1,7 @@
 from lib.embedding import word2vec, fasttext
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import StratifiedKFold
-from tensorflow.python.keras.layers import Dense, Input, Embedding, Concatenate
+from tensorflow.python.keras.layers import Dense, Input, Embedding, Concatenate, BatchNormalization
 from tensorflow.python.keras.layers import Conv1D, MaxPooling1D, Dropout, GlobalMaxPool1D
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.callbacks import EarlyStopping
@@ -56,12 +56,15 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
                                 input_length=max_sequence_len, trainable=False)
         sequence_input = Input(shape=(max_sequence_len,), dtype='int32')
         embedded_sequences_1 = embedding_layer_1(sequence_input)
-        l_conv1= Conv1D(250, 10, activation='relu', padding='valid',)(embedded_sequences_1)
-        l_pool1 = MaxPooling1D(5)(l_conv1)
+        l_conv1= Conv1D(250, 10, activation='relu', padding='valid')(embedded_sequences_1)
+        l_bn1 = BatchNormalization()(l_conv1)
+        l_pool1 = MaxPooling1D(5)(l_bn1)
         l_conv2 = Conv1D(150, 5, activation='relu')(l_pool1)
-        l_pool3 = GlobalMaxPool1D()(l_conv2)
+        l_bn2 = BatchNormalization()(l_conv2)
+        l_pool3 = GlobalMaxPool1D()(l_bn2)
         l_dense1 = Dense(100, activation='relu')(l_pool3)
-        l_dropout1 = Dropout(0.4)(l_dense1)
+        l_bn3 = BatchNormalization()(l_dense1)
+        l_dropout1 = Dropout(0.4)(l_bn3)
         l_dense2 = Dense(50, activation='relu')(l_dropout1)
         preds = Dense(num_classes, activation='softmax')(l_dense2)
 
@@ -108,7 +111,7 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, nu
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
     mean_accuracy = 0
-    iteration = 0
+    iteration = 1
     for train_index, test_index in skf.split(data_x, data_y.argmax(axis=1)):
         print("Iteration %d of %d" % (iteration, n_splits))
         iteration += 1
@@ -125,7 +128,7 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, nu
 if __name__ == '__main__':
     embedding_dim_1 = 300
     num_classes = 3
-    data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
+    data = pd.read_csv("data/labelled/StackOverflow.csv").as_matrix()
     # data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
     data_x = np.array([x.lower() for x in data[:,0]])
     data_y = [int(x) for x in data[:,1]]
