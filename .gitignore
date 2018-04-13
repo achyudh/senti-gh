@@ -30,3 +30,5 @@ data/ngram/
 data/epa/
 
 data/embedding/fasttext/
+
+data/models/cnn/
