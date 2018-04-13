@@ -11,7 +11,7 @@ import tensorflow as tf
 import pandas as pd
 
 
-def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim, max_sequence_len, num_classes):
+def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim, max_sequence_len, num_classes, dataset_name):
     with tf.device('/gpu:1'):
         embedding_layer_1 = Embedding(len(tokenizer.word_index) + 1, embedding_dim, weights=[embedding_map],
                                 input_length=max_sequence_len, trainable=False)
@@ -28,13 +28,13 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
         preds = Dense(num_classes, activation='softmax')(l_dropout2)
 
         cnn_model = Model(sequence_input, preds)
-        early_stopping_callback = EarlyStopping(patience=2, monitor='val_loss', min_delta=0.05)
-        checkpoint_callback = ModelCheckpoint(filepath="models/cnn_lstm/%s.hdf5" % dataset_name, verbose=1, save_best_only=True)
+        early_stopping_callback = EarlyStopping(patience=5, monitor='val_loss', min_delta=0.05)
+        checkpoint_callback = ModelCheckpoint(filepath="data/models/cnn/%s.hdf5" % dataset_name, monitor='val_acc', verbose=0, save_best_only=True)
         cnn_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         cnn_model.summary()
         cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=20, batch_size=64,
                       callbacks=[early_stopping_callback, checkpoint_callback])
-        cnn_model.load_weights("models/cnn_lstm/%s.hdf5" % dataset_name)
+        cnn_model.load_weights("data/models/cnn/%s.hdf5" % dataset_name)
     return cnn_model
 
 
@@ -91,28 +91,28 @@ def hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokeniz
     mean_accuracy = 0
     data_12 = pd.concat([data_1, data_2]).as_matrix()
     data_x12, data_y12_cat, _word_index, _max_sequence_len = preprocessing.make_network_ready(data_12, num_classes, tokenizer, max_sequence_len, enforce_max_len=True)
-    data_x3, data_y3_cat, _word_index, _max_sequence_len = preprocessing.make_network_ready(data_2.as_matrix(), num_classes, tokenizer, max_sequence_len, enforce_max_len=True)
-    metrics = evaluate(train(data_x12, data_y12_cat, data_x3, data_y3_cat, embedding_map, embedding_dim, max_sequence_len, num_classes), data_x3, data_y3_cat)
+    data_x3, data_y3_cat, _word_index, _max_sequence_len = preprocessing.make_network_ready(data_3.as_matrix(), num_classes, tokenizer, max_sequence_len, enforce_max_len=True)
+    metrics = evaluate(train(data_x12, data_y12_cat, data_x3, data_y3_cat, embedding_map, embedding_dim, max_sequence_len, num_classes, dataset_name="Gerit_Jira"), data_x3, data_y3_cat)
     mean_accuracy += metrics['micro-average'][0]
     precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
     recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
-    print(metrics)
+    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
     data_23 = pd.concat([data_2, data_3]).as_matrix()
     data_x23, data_y23_cat, _word_index, _max_sequence_len = preprocessing.make_network_ready(data_23, num_classes, tokenizer, max_sequence_len, enforce_max_len=True)
     data_x1, data_y1_cat, _word_index, _max_sequence_len = preprocessing.make_network_ready(data_1.as_matrix(), num_classes, tokenizer, max_sequence_len, enforce_max_len=True)
-    metrics = evaluate(train(data_x23, data_y23_cat, data_x1, data_y1_cat, embedding_map, embedding_dim, max_sequence_len, num_classes), data_x1, data_y1_cat)
+    metrics = evaluate(train(data_x23, data_y23_cat, data_x1, data_y1_cat, embedding_map, embedding_dim, max_sequence_len, num_classes, dataset_name="Jira_StackOverflow"), data_x1, data_y1_cat)
     mean_accuracy += metrics['micro-average'][0]
     precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
     recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
-    print(metrics)
+    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
     data_13 = pd.concat([data_1, data_3]).as_matrix()
     data_x13, data_y13_cat, _word_index, _max_sequence_len = preprocessing.make_network_ready(data_13, num_classes, tokenizer, max_sequence_len, enforce_max_len=True)
     data_x2, data_y2_cat, _word_index, _max_sequence_len = preprocessing.make_network_ready(data_2.as_matrix(), num_classes, tokenizer, max_sequence_len, enforce_max_len=True)
-    metrics = evaluate(train(data_x13, data_y13_cat, data_x2, data_y2_cat, embedding_map, embedding_dim, max_sequence_len, num_classes), data_x2, data_y2_cat)
+    metrics = evaluate(train(data_x13, data_y13_cat, data_x2, data_y2_cat, embedding_map, embedding_dim, max_sequence_len, num_classes, dataset_name="Gerrit_StackOverflow"), data_x2, data_y2_cat)
     mean_accuracy += metrics['micro-average'][0]
     precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
     recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
-    print(metrics)
+    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
     print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (mean_accuracy/3, [precision/3 for precision in precision_list], [recall/3 for recall in recall_list]))
 
 
