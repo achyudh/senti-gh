@@ -29,7 +29,7 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
 
         cnn_model = Model(sequence_input, preds)
         early_stopping_callback = EarlyStopping(patience=5, monitor='val_loss', min_delta=0.05)
-        checkpoint_callback = ModelCheckpoint(filepath="data/models/cnn/%s.hdf5" % dataset_name, monitor='val_acc', verbose=0, save_best_only=True)
+        checkpoint_callback = ModelCheckpoint(filepath="data/models/cnn/%s.hdf5" % dataset_name, monitor='val_acc', verbose=1, save_best_only=True)
         cnn_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         cnn_model.summary()
         cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=20, batch_size=64,
@@ -59,7 +59,7 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, nu
     for train_index, test_index in skf.split(data_x, data_y.argmax(axis=1)):
         print("Iteration %d of %d" % (iteration, n_splits))
         iteration += 1
-        cnn_pipeline = train(data_x[train_index], data_y[train_index], data_x[test_index], data_y[test_index], embedding_map, embedding_dim, max_sequence_len, num_classes)
+        cnn_pipeline = train(data_x[train_index], data_y[train_index], data_x[test_index], data_y[test_index], embedding_map, embedding_dim, max_sequence_len, num_classes, dataset_name)
         metrics = evaluate(cnn_pipeline, data_x[test_index], data_y[test_index])
         precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
         recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
@@ -72,17 +72,20 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, nu
 def bootstrap_trend(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, num_classes):
     train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.2, random_state=157)
     print("Metrics: Precision, Recall, F_Score, Support")
-    precision_list = list()
-    recall_list = list()
+    precision_list = [0 for i in range(num_classes)]
+    recall_list = [0 for i in range(num_classes)]
     accuracy_list = list()
-    for sample_rate in [0.8, 0.9, 1.0]:
+    for sample_rate in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
         n_samples = int(sample_rate * len(train_y) + 1)
         train_xr, train_yr = resample(train_x, train_y, n_samples=n_samples, random_state=157)
-        cnn_pipeline = train(train_xr, train_yr, test_x, test_y, embedding_map, embedding_dim, max_sequence_len, num_classes)
+        cnn_pipeline = train(train_xr, train_yr, test_x, test_y, embedding_map, embedding_dim, max_sequence_len, num_classes, "Combined_%fpercent" % sample_rate)
         metrics = evaluate(cnn_pipeline, test_x, test_y)
+        print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+        precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
+        recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
         accuracy_list.append(metrics['micro-average'][0])
-        print(metrics)
     print(accuracy_list)
+    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (sum(accuracy_list)/9, [precision/9 for precision in precision_list], [recall/9 for recall in recall_list]))
 
 
 def hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokenizer, max_sequence_len, num_classes):
@@ -117,10 +120,10 @@ def hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokeniz
 
 
 if __name__ == '__main__':
-    dataset_name = 'Gerrit'
+    # dataset_name = 'StackOverflow'
     embedding_dim = 300
-    num_classes = 2
-    # data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
+    num_classes = 3
+    # data = pd.read_csv("data/labelled/Jira.csv").as_matrix()
     # data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
     data_1 = pd.read_csv("data/labelled/Gerrit.csv")
     data_2 = pd.read_csv("data/labelled/JIRA.csv")
@@ -130,6 +133,6 @@ if __name__ == '__main__':
     print("Dataset loaded to memory. Size:", len(data_y_cat))
     embedding_map = word2vec.embedding_matrix(tokenizer.word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
     # embedding_map = word2vec.embedding_matrix(tokenizer.word_index)
-    # cross_val(data_x, data_y_cat, embedding_map_1, embedding_dim_1, max_sequence_len, num_classes, n_splits=5)
-    # bootstrap_trend(data_x, data_y_cat, embedding_map_1, embedding_dim, max_sequence_len, num_classes)
-    hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokenizer, max_sequence_len, num_classes)
+    # cross_val(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, num_classes, n_splits=10)
+    bootstrap_trend(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, num_classes)
+    # hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokenizer, max_sequence_len, num_classes)
