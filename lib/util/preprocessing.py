@@ -1,3 +1,6 @@
+from tensorflow.python.keras.utils import to_categorical
+from tensorflow.python.keras.preprocessing.text import Tokenizer
+from tensorflow.python.keras.preprocessing.sequence import pad_sequences
 from tinydb import TinyDB
 import numpy as np
 
@@ -52,6 +55,19 @@ def to_extended_categorical(y, num_classes=None):
             categorical[i, y[i]] = 1
     return categorical
 
+
+def make_network_ready(data, num_classes, tokenizer = None, max_sequence_len=400, enforce_max_len=False):
+    if tokenizer is None:
+        tokenizer = Tokenizer()
+        tokenizer.fit_on_texts(data[:,0])
+    sequences = tokenizer.texts_to_sequences(data[:,0])
+    seq_lengths = [len(seq) for seq in sequences]
+    if not enforce_max_len:
+        max_sequence_len = min(max_sequence_len, max(seq_lengths))
+    data_x = pad_sequences(sequences, maxlen=max_sequence_len)
+    data_y = [int(x) for x in data[:,1]]
+    data_y_cat = to_categorical(data_y, num_classes=num_classes)
+    return data_x, data_y_cat, tokenizer, max_sequence_len
 
 if __name__ == '__main__':
     print(to_extended_categorical([1, 2, -1, 0, 1, 0, 2, 0, -1], 3))
