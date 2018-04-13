@@ -7,6 +7,7 @@ from tensorflow.python.keras.callbacks import EarlyStopping
 from tensorflow.python.keras.utils import to_categorical
 from tensorflow.python.keras.preprocessing.text import Tokenizer
 from tensorflow.python.keras.preprocessing.sequence import pad_sequences
+from lib.util import preprocessing
 import tensorflow as tf
 import pandas as pd
 import numpy as np
@@ -67,20 +68,8 @@ if __name__ == '__main__':
     num_classes = 2
     data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
     # data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
-    data_x = np.array([x.lower() for x in data[:,0]])
-    data_y = [int(x) for x in data[:,1]]
-    print("Dataset loaded to memory. Size:", len(data_y))
-    # data_x, reaction_matrix = fetch.sentences_with_reactions("data/user", tokenize=False)
-    # data_y = reaction_matrix[:, 0]
-    tokenizer = Tokenizer()
-    tokenizer.fit_on_texts(data[:,0])
-    sequences = tokenizer.texts_to_sequences(data[:,0])
-    seq_lengths = [len(seq) for seq in sequences]
-    max_sequence_len = max(seq_lengths)
-    max_sequence_len = min(400, max_sequence_len)
-    data_x = pad_sequences(sequences, maxlen=max_sequence_len)
-    data_y_cat = to_categorical(data_y, num_classes=num_classes)
-    word_index = tokenizer.word_index
-    # embedding_map_1 = word2vec.embedding_matrix(word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
-    embedding_map_1 = word2vec.embedding_matrix(word_index)
+    data_x, data_y_cat, tokenizer, max_sequence_len = preprocessing.make_network_ready(data, num_classes)
+    print("Dataset loaded to memory. Size:", len(data_y_cat))
+    # embedding_map_1 = word2vec.embedding_matrix(tokenizer.word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
+    embedding_map_1 = word2vec.embedding_matrix(tokenizer.word_index)
     cross_val(data_x, data_y_cat, embedding_map_1, embedding_dim_1, max_sequence_len, num_classes, n_splits=10)
