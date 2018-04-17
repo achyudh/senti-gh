@@ -4,6 +4,7 @@ from tensorflow.python.keras.preprocessing.sequence import pad_sequences
 from tinydb import TinyDB
 import numpy as np
 
+
 def user_ipa_count(dataset):
     result = dict()
     db = TinyDB(dataset)

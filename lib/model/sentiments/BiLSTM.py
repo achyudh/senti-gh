@@ -16,7 +16,7 @@ import numpy as np
 def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim, max_sequence_len, num_classes):
     with tf.device('/gpu:0'):
         sequence_input = Input(shape=(max_sequence_len,), dtype='int32')
-        embedding_layer_1 = Embedding(len(word_index) + 1, embedding_dim, weights=[embedding_map],
+        embedding_layer_1 = Embedding(len(tokenizer.word_index) + 1, embedding_dim, weights=[embedding_map],
                                 input_length=max_sequence_len, trainable=False)
         embedded_sequences_1 = embedding_layer_1(sequence_input)
         l_lstm = Bidirectional(LSTM(200, dropout=0.2, recurrent_dropout=0.2))(embedded_sequences_1)
