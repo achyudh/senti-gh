@@ -34,3 +34,5 @@ data/embedding/fasttext/
 data/models/cnn/
 
 *.png
+
+data/validation_splits/
