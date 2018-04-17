@@ -62,7 +62,8 @@ def bootstrap_trend(data_x, data_y):
         sentim_analyzer, classifier = train(train_xr, train_yr)
         metrics = evaluate(sentim_analyzer, classifier, test_x, test_y)
         accuracy_list.append(metrics['micro-average'][0])
-        print(metrics)
+        print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (sum(accuracy_list)/9, [precision/9 for precision in precision_list], [recall/9 for recall in recall_list]))
     print(accuracy_list)
 
 
@@ -109,6 +110,59 @@ def hard_cross_val(data_1, data_2, data_3, num_classes):
     print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (mean_accuracy/3, [precision/3 for precision in precision_list], [recall/3 for recall in recall_list]))
 
 
+def evaluate_custom(data_1, data_2, data_3, num_classes):
+    data_x1 = np.array([x.lower().split() for x in data_1.as_matrix()[:,0]])
+    data_y1 = np.array([int(x) for x in data_1.as_matrix()[:,1]])
+    data_x2 = np.array([x.lower().split() for x in data_2.as_matrix()[:,0]])
+    data_y2 = np.array([int(x) for x in data_2.as_matrix()[:,1]])
+    data_x3 = np.array([x.lower().split() for x in data_3.as_matrix()[:,0]])
+    data_y3 = np.array([int(x) for x in data_3.as_matrix()[:,1]])
+    precision_list = [0 for i in range(num_classes)]
+    recall_list = [0 for i in range(num_classes)]
+    mean_accuracy = 0
+
+    sentim_analyzer, classifier = train(data_x1, data_y1)
+    metrics = evaluate(sentim_analyzer, classifier, data_x2, data_y2)
+    mean_accuracy += metrics['micro-average'][0]
+    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
+    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
+    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+
+    metrics = evaluate(sentim_analyzer, classifier, data_x3, data_y3)
+    mean_accuracy += metrics['micro-average'][0]
+    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
+    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
+    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+
+    sentim_analyzer, classifier = train(data_x2, data_y2)
+    metrics = evaluate(sentim_analyzer, classifier, data_x1, data_y1)
+    mean_accuracy += metrics['micro-average'][0]
+    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
+    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
+    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+
+    metrics = evaluate(sentim_analyzer, classifier, data_x3, data_y3)
+    mean_accuracy += metrics['micro-average'][0]
+    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
+    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
+    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+
+    sentim_analyzer, classifier = train(data_x3, data_y3)
+    metrics = evaluate(sentim_analyzer, classifier, data_x1, data_y1)
+    mean_accuracy += metrics['micro-average'][0]
+    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
+    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
+    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+
+    metrics = evaluate(sentim_analyzer, classifier, data_x2, data_y2)
+    mean_accuracy += metrics['micro-average'][0]
+    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
+    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
+    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+
+    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (mean_accuracy/6, [precision/6 for precision in precision_list], [recall/6 for recall in recall_list]))
+
+
 if __name__ == '__main__':
     num_classes = 2
     # data = pd.read_csv("data/labelled/JIRA.csv").as_matrix()
@@ -116,7 +170,8 @@ if __name__ == '__main__':
     data_1 = pd.read_csv("data/labelled/Gerrit.csv")
     data_2 = pd.read_csv("data/labelled/JIRA.csv")
     data_3 = pd.read_csv("data/labelled/StackOverflow2.csv", encoding='latin1')
-    hard_cross_val(data_1, data_2, data_3, num_classes)
+    # hard_cross_val(data_1, data_2, data_3, num_classes)
+    evaluate_custom(data_1, data_2, data_3, num_classes)
     # data = pd.concat([data_1, data_2, data_3]).as_matrix()
     # data_x = np.array([x.lower().split() for x in data[:,0]])
     # data_y = np.array([int(x) for x in data[:,1]])
