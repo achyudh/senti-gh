@@ -37,7 +37,7 @@ def remove_duplicate_entries(dataset):
         json.dump(db, json_file)
 
 
-def plot_line_graph(arrays, x_label="Percentage of training set used", y_label="Accuracy", ylim=(0.6, 1),
+def plot_line_graph(arrays, x_label="Percentage of training set used", y_label="Accuracy", ylim=(0.75, 1),
                     filename="bootstrap_trend.png", xticks=(20, 30, 40, 50, 60, 70, 80, 90, 100)):
     plt.xticks(range(0, len(xticks)), xticks)
     plt.ylim(ylim)
@@ -49,12 +49,39 @@ def plot_line_graph(arrays, x_label="Percentage of training set used", y_label="
     plt.savefig(filename)
 
 
+def enumerate_file(file_path):
+    file_contents = list()
+    iter = 1
+    with open(file_path, encoding='utf-8') as text_file:
+        _temp = text_file.readline()
+        for line in text_file:
+            file_contents.append(str(iter) + "\t" + line)
+            iter += 1
+    with open(file_path, 'w', encoding='utf-8') as text_file:
+        for line in file_contents:
+            text_file.write(line)
+
+
+def denumerate_file(file_path):
+    file_contents = list()
+    with open(file_path, encoding='utf-8') as text_file:
+        for line in text_file:
+            file_contents.append(line.split('\t', maxsplit=1)[1])
+    with open(file_path, 'w', encoding='utf-8') as text_file:
+        for line in file_contents:
+            text_file.write(line)
+
+
 if __name__ == '__main__':
     plot_line_graph([
-        {"data": [0.7855805243445693, 0.8136704119850188, 0.7734082397003745, 0.8164794007490637, 0.8323970037453183, 0.8342696629213483, 0.8623595505617978, 0.8614232209737828, 0.8576779026217228],
-         "label": "CNN-LSTM"},
-        {"data": [0.8071161048689138, 0.8080524344569289, 0.8099250936329588, 0.8352059925093633, 0.8370786516853933, 0.849250936329588, 0.8473782771535581, 0.8389513108614233, 0.851123595505618],
+        {"data": [0.8211610486891385, 0.8314606741573034, 0.8314606741573034, 0.8417602996254682, 0.8389513108614233, 0.8548689138576779, 0.8604868913857678, 0.8539325842696629, 0.849250936329588],
          "label": "CNN"},
         {"data":[0.7584269662921348, 0.7762172284644194, 0.7865168539325843, 0.7846441947565543, 0.8089887640449438, 0.799625468164794, 0.8061797752808989, 0.8239700374531835, 0.8192883895131086],
-         "label": "Naive Bayes"}
+         "label": "Naive Bayes (NLTK)"},
+        {"data": [0.8436329588014981, 0.8436329588014981, 0.8436329588014981, 0.8436329588014981, 0.8436329588014981, 0.8436329588014981, 0.8436329588014981, 0.8436329588014981, 0.8436329588014981],
+         "label": "VADER (NLTK)"},
+        {"data": [0.8444819186809068, 0.8444819186809068, 0.8444819186809068, 0.8444819186809068, 0.8444819186809068, 0.8444819186809068, 0.8444819186809068, 0.8444819186809068, 0.8444819186809068],
+         "label": "SentiStrength"},
+        {"data": [0.8332396477421773, 0.8332396477421773, 0.8332396477421773, 0.8332396477421773, 0.8332396477421773, 0.8332396477421773, 0.8332396477421773, 0.8332396477421773, 0.8332396477421773],
+        "label": "SentiStrength SE"}
     ])
