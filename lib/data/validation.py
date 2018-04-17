@@ -57,6 +57,28 @@ def sentistrength_import(evaluate_y_path, predict_y_path, has_neutral=False):
             "micro-average": precision_recall_fscore_support(evaluate_y, predict_y, average="micro")}
 
 
+def sentistrengthse_import(evaluate_y_path, predict_y_path, has_neutral=False):
+    predict_y = list()
+    evaluate_y = list()
+    with open(evaluate_y_path, encoding='utf-8') as text_file:
+        for line in text_file:
+            evaluate_y.append(int(line))
+    with open(predict_y_path) as text_file:
+        _temp = text_file.readline()
+        for line in text_file:
+            split_line = line.split('\t')[1].split(' ')
+            sentiment = int(split_line[0]) + int(split_line[1])
+            if sentiment < 0:
+                predict_y.append(0)
+            else:
+                if has_neutral and sentiment == 0:
+                    predict_y.append(2)
+                else:
+                    predict_y.append(1)
+    return {"individual": precision_recall_fscore_support(evaluate_y, predict_y),
+            "micro-average": precision_recall_fscore_support(evaluate_y, predict_y, average="micro")}
+
+
 def bootstrap_trend_export(data_x, data_y, dataset_name, has_neutral=False):
     dataset_name = "data/validation_splits/" + dataset_name
     train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.2, random_state=157)
@@ -79,17 +101,16 @@ def bootstrap_trend_export(data_x, data_y, dataset_name, has_neutral=False):
                 text_file.write(str(line)+'\n')
 
 
-
 if __name__ == '__main__':
     # data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
     # data = pd.read_csv("data/labelled/StackOverflow2.csv", encoding='latin1').as_matrix()
-    data_1 = pd.read_csv("data/labelled/StackOverflow2.csv", encoding='latin1')
-    data_2 = pd.read_csv("data/labelled/Gerrit.csv")
-    data_3 = pd.read_csv("data/labelled/JIRA.csv")
-    data = pd.concat([data_1, data_2, data_3]).as_matrix()
-    data_x = np.array([x for x in data[:,0]])
-    data_y = np.array([int(x) for x in data[:,1]])
+    # data_1 = pd.read_csv("data/labelled/StackOverflow2.csv", encoding='latin1')
+    # data_2 = pd.read_csv("data/labelled/Gerrit.csv")
+    # data_3 = pd.read_csv("data/labelled/JIRA.csv")
+    # data = pd.concat([data_1, data_2, data_3]).as_matrix()
+    # data_x = np.array([x for x in data[:,0]])
+    # data_y = np.array([int(x) for x in data[:,1]])
     # stratified_kfold_export(data_x, data_y, dataset_name="StackOverflow2")
     # bootstrap_trend_export(data_x, data_y, dataset_name="Combined")
-    metrics = sentistrength_import("data/validation_splits/Combined_test_y.txt", "data/validation_splits/Combined_predict_y.txt", has_neutral=False)
+    metrics = sentistrengthse_import("data/validation_splits/StackOverflow2_data_y.txt", "data/validation_splits/StackOverflow2_predict_y_sentistrengthse.txt", has_neutral=False)
     print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
