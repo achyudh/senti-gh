@@ -52,15 +52,17 @@ def cross_val(data_x, data_y, num_classes, n_splits=5):
 def bootstrap_trend(data_x, data_y):
     train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.2, random_state=157)
     print("Metrics: Precision, Recall, F_Score, Support")
-    precision_list = list()
-    recall_list = list()
+    precision_list = [0 for i in range(num_classes)]
+    recall_list = [0 for i in range(num_classes)]
     accuracy_list = list()
     for sample_rate in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
         n_samples = int(sample_rate * len(train_y) + 1)
         train_xr, train_yr = resample(train_x, train_y, n_samples=n_samples, random_state=157)
-        print("Training with %d samples", len(train_yr))
+        print("Training with %d samples" % len(train_yr))
         sentim_analyzer, classifier = train(train_xr, train_yr)
         metrics = evaluate(sentim_analyzer, classifier, test_x, test_y)
+        precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
+        recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
         accuracy_list.append(metrics['micro-average'][0])
         print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
     print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (sum(accuracy_list)/9, [precision/9 for precision in precision_list], [recall/9 for recall in recall_list]))
@@ -171,10 +173,10 @@ if __name__ == '__main__':
     data_2 = pd.read_csv("data/labelled/JIRA.csv")
     data_3 = pd.read_csv("data/labelled/StackOverflow2.csv", encoding='latin1')
     # hard_cross_val(data_1, data_2, data_3, num_classes)
-    evaluate_custom(data_1, data_2, data_3, num_classes)
-    # data = pd.concat([data_1, data_2, data_3]).as_matrix()
-    # data_x = np.array([x.lower().split() for x in data[:,0]])
-    # data_y = np.array([int(x) for x in data[:,1]])
+    # evaluate_custom(data_1, data_2, data_3, num_classes)
+    data = pd.concat([data_1, data_2, data_3]).as_matrix()
+    data_x = np.array([x.lower().split() for x in data[:,0]])
+    data_y = np.array([int(x) for x in data[:,1]])
     # print("Dataset loaded to memory. Size:", len(data_y))
     # cross_val(data_x, data_y, num_classes, n_splits=10)
-    # bootstrap_trend(data_x, data_y)
+    bootstrap_trend(data_x, data_y)
