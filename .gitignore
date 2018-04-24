@@ -36,3 +36,5 @@ data/models/cnn/
 *.png
 
 data/validation_splits/
+
+data/models/cnn_lstm/
