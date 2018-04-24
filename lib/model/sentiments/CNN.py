@@ -1,9 +1,10 @@
 from tensorflow.python.keras.layers import Dense, Input, Embedding, Concatenate, BatchNormalization
 from tensorflow.python.keras.layers import Conv1D, MaxPooling1D, Dropout, GlobalMaxPool1D
 from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.python.keras.utils import plot_model
 from tensorflow.python.keras.models import Model
 from sklearn.model_selection import StratifiedKFold, train_test_split
-from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 from lib.embedding import word2vec, fasttext
 from sklearn.utils import resample
 from lib.util import preprocessing
@@ -32,6 +33,7 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
         checkpoint_callback = ModelCheckpoint(filepath="data/models/cnn/%s.hdf5" % dataset_name, monitor='val_acc', verbose=1, save_best_only=True)
         cnn_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         cnn_model.summary()
+        # plot_model(cnn_model, to_file='model.png')
         cnn_model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=20, batch_size=64,
                       callbacks=[early_stopping_callback, checkpoint_callback])
         cnn_model.load_weights("data/models/cnn/%s.hdf5" % dataset_name)
@@ -45,6 +47,7 @@ def predict(classifier, predict_x):
 def evaluate(classifier, evaluate_x, evaluate_y):
     predict_y = predict(classifier, evaluate_x).argmax(axis=1)
     evaluate_y = evaluate_y.argmax(axis=1)
+    # print(accuracy_score(evaluate_y, predict_y))
     return {"individual": precision_recall_fscore_support(evaluate_y, predict_y),
             "micro-average": precision_recall_fscore_support(evaluate_y, predict_y, average="micro")}
 
@@ -173,19 +176,19 @@ def evaluate_custom(data_1, data_2, data_3, embedding_map, embedding_dim, tokeni
 
 
 if __name__ == '__main__':
-    # dataset_name = 'StackOverflow'
+    dataset_name = 'StackOverflow'
     embedding_dim = 300
     num_classes = 3
-    # data = pd.read_csv("data/labelled/Jira.csv").as_matrix()
+    # data = pd.read_csv("data/labelled/StackOverflow.csv").as_matrix()
     # data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
-    data_1 = pd.read_csv("data/labelled/Gerrit.csv")
-    data_2 = pd.read_csv("data/labelled/JIRA.csv")
-    data_3 = pd.read_csv("data/labelled/StackOverflow2.csv", encoding='latin1')
-    data = pd.concat([data_1, data_2, data_3]).as_matrix()
+    # data_1 = pd.read_csv("data/labelled/Gerrit.csv")
+    # data_2 = pd.read_csv("data/labelled/JIRA.csv")
+    # data_3 = pd.read_csv("data/labelled/StackOverflow2.csv", encoding='latin1')
+    # data = pd.concat([data_1, data_2, data_3]).as_matrix()
     data_x, data_y_cat, tokenizer, max_sequence_len = preprocessing.make_network_ready(data, num_classes)
     print("Dataset loaded to memory. Size:", len(data_y_cat))
     embedding_map = word2vec.embedding_matrix(tokenizer.word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
     # embedding_map = word2vec.embedding_matrix(tokenizer.word_index)
-    # cross_val(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, num_classes, n_splits=10)
+    cross_val(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, num_classes, n_splits=10)
     # bootstrap_trend(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, num_classes)
-    evaluate_custom(data_1, data_2, data_3, embedding_map, embedding_dim, tokenizer, max_sequence_len, num_classes)
+    # evaluate_custom(data_1, data_2, data_3, embedding_map, embedding_dim, tokenizer, max_sequence_len, num_classes)

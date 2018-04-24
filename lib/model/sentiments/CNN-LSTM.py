@@ -29,13 +29,13 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
         l_dropout1 = Dropout(0.2)(l_dense1)
         preds = Dense(num_classes, activation='softmax')(l_dropout1)
         model = Model(sequence_input, preds)
-        early_stopping_callback = EarlyStopping(patience=2, monitor='val_loss', min_delta=0.05)
-        checkpoint_callback = ModelCheckpoint(filepath="models/cnn_lstm/%s.hdf5" % dataset_name, verbose=1, save_best_only=True)
+        early_stopping_callback = EarlyStopping(patience=5, monitor='val_loss', min_delta=0.05)
+        checkpoint_callback = ModelCheckpoint(filepath="data/models/cnn_lstm/%s.hdf5" % dataset_name, monitor='val_acc', verbose=1, save_best_only=True)
         model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         model.summary()
         model.fit(train_x, train_y, validation_data=(evaluate_x, evaluate_y), epochs=20, batch_size=64,
                       callbacks=[early_stopping_callback, checkpoint_callback])
-    model.load_weights("models/cnn_lstm/%s.hdf5" % dataset_name)
+    model.load_weights("data/models/cnn_lstm/%s.hdf5" % dataset_name)
     return model
 
 
@@ -73,17 +73,21 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, nu
 def bootstrap_trend(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, num_classes):
     train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.2, random_state=157)
     print("Metrics: Precision, Recall, F_Score, Support")
-    precision_list = list()
-    recall_list = list()
+    precision_list = [0 for i in range(num_classes)]
+    recall_list = [0 for i in range(num_classes)]
     accuracy_list = list()
-    for sample_rate in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
+    for sample_rate in [1.0]:
         n_samples = int(sample_rate * len(train_y) + 1)
         train_xr, train_yr = resample(train_x, train_y, n_samples=n_samples, random_state=157)
         cnn_pipeline = train(train_xr, train_yr, test_x, test_y, embedding_map, embedding_dim, max_sequence_len, num_classes)
         metrics = evaluate(cnn_pipeline, test_x, test_y)
+        print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+        precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
+        recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
         accuracy_list.append(metrics['micro-average'][0])
-        print(metrics)
     print(accuracy_list)
+    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (sum(accuracy_list)/9, [precision/9 for precision in precision_list], [recall/9 for recall in recall_list]))
+
 
 
 def hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokenizer, max_sequence_len, num_classes):
@@ -120,17 +124,17 @@ def hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokeniz
 if __name__ == '__main__':
     embedding_dim = 300
     num_classes = 2
-    dataset_name = "Gerrit"
+    dataset_name = "Combined"
     # data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
     # data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
     data_1 = pd.read_csv("data/labelled/Gerrit.csv")
     data_2 = pd.read_csv("data/labelled/JIRA.csv")
-    data_3 = pd.read_csv("data/labelled/StackOverflow2.csv", encoding='latin1')
+    data_3 = pd.read_csv("data/labelled/StackOverflowEmotions2.csv", encoding='latin1')
     data = pd.concat([data_1, data_2, data_3]).as_matrix()
     data_x, data_y_cat, tokenizer, max_sequence_len = preprocessing.make_network_ready(data, num_classes)
     print("Dataset loaded to memory. Size:", len(data_y_cat))
     embedding_map = word2vec.embedding_matrix(tokenizer.word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
     # embedding_map = word2vec.embedding_matrix(word_index)
-    # cross_val(data_x, data_y_cat, embedding_map_1, embedding_dim_1, max_sequence_len, num_classes, n_splits=5)
-    # bootstrap_trend(data_x, data_y_cat, embedding_map_1, embedding_dim, max_sequence_len, num_classes)
-    hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokenizer, max_sequence_len, num_classes)
+    # cross_val(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, num_classes, n_splits=5)
+    bootstrap_trend(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, num_classes)
+    # hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokenizer, max_sequence_len, num_classes)
