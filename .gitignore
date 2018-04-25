@@ -38,3 +38,23 @@ data/models/cnn/
 data/validation_splits/
 
 data/models/cnn_lstm/
+
+BigramsList
+
+UnigramsList
+
+*.log
+
+output\.csv
+
+input\.csv
+
+predictions\.csv
+
+test\.txt
+
+lib/external/Senti4SD/dsm\.bin
+
+temp/L2-regularized_logistic_regression_\(primal\)\.txt
+
+*.Rda
