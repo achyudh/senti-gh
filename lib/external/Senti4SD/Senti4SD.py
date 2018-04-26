@@ -182,9 +182,9 @@ def evaluate_custom(data_1, data_2, data_3, num_classes):
 
 
 if __name__ == '__main__':
-    num_classes = 2
-    data = pd.read_csv("data/labelled/JIRA.csv").as_matrix()
-    # data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
+    num_classes = 3
+    # data = pd.read_csv("data/labelled/Jira.csv").as_matrix()
+    data = pd.read_csv("data/labelled/StackOverflowSentiments.csv", encoding='latin1').as_matrix()
     # data_1 = pd.read_csv("data/labelled/Gerrit.csv")
     # data_2 = pd.read_csv("data/labelled/JIRA.csv")
     # data_3 = pd.read_csv("data/labelled/StackOverflow2.csv", encoding='latin1')
@@ -194,5 +194,5 @@ if __name__ == '__main__':
     data_x = np.array([x.lower() for x in data[:,0]])
     data_y = np.array([int(x) for x in data[:,1]])
     # print("Dataset loaded to memory. Size:", len(data_y))
-    cross_val(data_x, data_y, num_classes, n_splits=5)
+    cross_val(data_x, data_y, num_classes, n_splits=10)
     # bootstrap_trend(data_x, data_y)

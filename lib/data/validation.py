@@ -131,6 +131,7 @@ def plaintext_import(evaluate_y_path, predict_y_path):
     return {"individual": precision_recall_fscore_support(evaluate_y, predict_y),
         "micro-average": precision_recall_fscore_support(evaluate_y, predict_y, average="micro")}
 
+
 if __name__ == '__main__':
     # data = pd.read_csv("data/labelled/Jira.csv").as_matrix()
     # data = pd.read_csv("data/labelled/StackOverflow2.csv", encoding='latin1').as_matrix()
