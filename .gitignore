@@ -58,3 +58,5 @@ lib/external/Senti4SD/dsm\.bin
 temp/L2-regularized_logistic_regression_\(primal\)\.txt
 
 *.Rda
+
+data/models/hi_cnn_lstm/
