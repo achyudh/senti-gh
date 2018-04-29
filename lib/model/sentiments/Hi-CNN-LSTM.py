@@ -55,7 +55,7 @@ def evaluate(classifier, evaluate_x, evaluate_y):
 
 
 def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, max_sequences, num_classes, n_splits=5):
-    skf = StratifiedKFold(n_splits, random_state=157)
+    skf = StratifiedKFold(n_splits, shuffle=True,random_state=157)
     print("Performing cross validation (%d-fold)..." % n_splits)
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
@@ -133,23 +133,23 @@ def hard_cross_val(data_list, embedding_map, embedding_dim, tokenizer, max_seque
 
 
 if __name__ == '__main__':
-    num_classes = 3
+    num_classes = 2
     embedding_dim = 300
     dataset_name = 'Combined'
-    # data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
+    data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
     # data = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1').as_matrix()
     # data_1 = pd.read_csv("data/labelled/Gerrit.csv")
     # data_2 = pd.read_csv("data/labelled/JIRA.csv")
     # data_3 = pd.read_csv("data/labelled/AppReviews2.csv")
-    data_4 = pd.read_csv("data/labelled/StackOverflowEmotions.csv", encoding='latin1')
-    data_5 = pd.read_csv("data/labelled/StackOverflowSentiments.csv", encoding='latin1')
-    data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1')
-    data_list = [data_4, data_5, data_6]
-    data = pd.concat(data_list).as_matrix()
+    # data_4 = pd.read_csv("data/labelled/StackOverflowEmotions.csv", encoding='latin1')
+    # data_5 = pd.read_csv("data/labelled/StackOverflowSentiments.csv", encoding='latin1')
+    # data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1')
+    # data_list = [data_4, data_5, data_6]
+    # data = pd.concat(data_list).as_matrix()
     data_x, data_y_cat, tokenizer, max_sequence_len, max_sequences = preprocessing.make_hierarchical_network_ready(data, num_classes)
     print("Dataset loaded to memory. Size:", len(data_y_cat))
     embedding_map = word2vec.embedding_matrix(tokenizer.word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
     # embedding_map = word2vec.embedding_matrix(tokenizer.word_index)
-    # cross_val(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, num_classes, n_splits=10)
+    cross_val(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, max_sequences,num_classes, n_splits=10)
     # bootstrap_trend(data_list, embedding_dim, num_classes)
-    hard_cross_val(data_list, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes)
+    # hard_cross_val(data_list, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes)

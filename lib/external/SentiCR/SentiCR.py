@@ -264,7 +264,7 @@ class SentiCR:
 
 
 def cross_val(dataset, data_y, classifier, num_classes=2, n_splits=10):
-    kf = StratifiedKFold(n_splits=10, random_state=157)
+    skf = StratifiedKFold(n_splits, shuffle=True,random_state=157)
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
     mean_accuracy = 0

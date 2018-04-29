@@ -53,7 +53,7 @@ def evaluate(classifier, evaluate_x, evaluate_y):
 
 
 def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, num_classes, n_splits=5):
-    skf = StratifiedKFold(n_splits, random_state=157)
+    skf = StratifiedKFold(n_splits, shuffle=True,random_state=157)
     print("Performing cross validation (%d-fold)..." % n_splits)
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]

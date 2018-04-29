@@ -123,7 +123,7 @@ def hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokeniz
 
 
 if __name__ == '__main__':
-    num_classes = 3
+    num_classes = 2
     embedding_dim = 300
     dataset_name = "Jira"
     data = pd.read_csv("data/labelled/Jira.csv").as_matrix()
@@ -132,7 +132,7 @@ if __name__ == '__main__':
     # data_2 = pd.read_csv("data/labelled/JIRA.csv")
     # data_3 = pd.read_csv("data/labelled/StackOverflowEmotions2.csv", encoding='latin1')
     # data = pd.concat([data_1, data_2, data_3]).as_matrix()
-    data_x, data_y_cat, tokenizer, max_sequence_len, max_sequences = preprocessing.make_hierarchical_network_ready(data, num_classes, filter_words=True)
+    data_x, data_y_cat, tokenizer, max_sequence_len, max_sequences = preprocessing.make_hierarchical_network_ready(data, num_classes)
     print("Dataset loaded to memory. Size:", len(data_y_cat))
     embedding_map = word2vec.embedding_matrix(tokenizer.word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
     # embedding_map = word2vec.embedding_matrix(word_index)

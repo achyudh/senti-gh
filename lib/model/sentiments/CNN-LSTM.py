@@ -24,12 +24,12 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
         embedded_sequences_1 = embedding_layer_1(sequence_input)
         l_conv1= Conv1D(150, 5, activation='relu', padding='valid')(embedded_sequences_1)
         l_pool1 = MaxPooling1D(4)(l_conv1)
-        l_lstm = Bidirectional(LSTM(75, dropout=0.2, recurrent_dropout=0.2))(l_pool1)
+        l_lstm = Bidirectional(LSTM(150, dropout=0.2, recurrent_dropout=0.2))(l_pool1)
         l_dense1 = Dense(20, activation='relu')(l_lstm)
         l_dropout1 = Dropout(0.2)(l_dense1)
         preds = Dense(num_classes, activation='softmax')(l_dropout1)
         model = Model(sequence_input, preds)
-        early_stopping_callback = EarlyStopping(patience=5, monitor='val_loss', min_delta=0.05)
+        early_stopping_callback = EarlyStopping(patience=5, monitor='val_acc')
         checkpoint_callback = ModelCheckpoint(filepath="data/models/cnn_lstm/%s.hdf5" % dataset_name, monitor='val_acc', verbose=1, save_best_only=True)
         model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         model.summary()
@@ -51,7 +51,7 @@ def evaluate(classifier, evaluate_x, evaluate_y):
 
 
 def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, num_classes, n_splits=5):
-    skf = StratifiedKFold(n_splits, random_state=157)
+    skf = StratifiedKFold(n_splits, shuffle=True,random_state=157)
     print("Performing cross validation (%d-fold)..." % n_splits)
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
@@ -89,7 +89,6 @@ def bootstrap_trend(data_x, data_y, embedding_map, embedding_dim, max_sequence_l
     print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (sum(accuracy_list)/9, [precision/9 for precision in precision_list], [recall/9 for recall in recall_list]))
 
 
-
 def hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokenizer, max_sequence_len, num_classes):
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
@@ -122,19 +121,19 @@ def hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokeniz
 
 
 if __name__ == '__main__':
+    num_classes = 3
     embedding_dim = 300
-    num_classes = 2
-    dataset_name = "Combined"
-    # data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
-    # data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
-    data_1 = pd.read_csv("data/labelled/Gerrit.csv")
-    data_2 = pd.read_csv("data/labelled/JIRA.csv")
-    data_3 = pd.read_csv("data/labelled/StackOverflowEmotions2.csv", encoding='latin1')
-    data = pd.concat([data_1, data_2, data_3]).as_matrix()
-    data_x, data_y_cat, tokenizer, max_sequence_len = preprocessing.make_network_ready(data, num_classes)
+    dataset_name = "StackOverflowSentiments"
+    # data = pd.read_csv("data/labelled/Jira.csv").as_matrix()
+    data = pd.read_csv("data/labelled/StackOverflowSentiments.csv", encoding='latin1').as_matrix()
+    # data_1 = pd.read_csv("data/labelled/Gerrit.csv")
+    # data_2 = pd.read_csv("data/labelled/JIRA.csv")
+    # data_3 = pd.read_csv("data/labelled/StackOverflowEmotions2.csv", encoding='latin1')
+    # data = pd.concat([data_1, data_2, data_3]).as_matrix()
+    data_x, data_y_cat, tokenizer, max_sequence_len = preprocessing.make_network_ready(data, num_classes, filter_words=False)
     print("Dataset loaded to memory. Size:", len(data_y_cat))
     embedding_map = word2vec.embedding_matrix(tokenizer.word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
     # embedding_map = word2vec.embedding_matrix(word_index)
-    # cross_val(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, num_classes, n_splits=5)
-    bootstrap_trend(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, num_classes)
+    cross_val(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, num_classes, n_splits=10)
+    # bootstrap_trend(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, num_classes)
     # hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokenizer, max_sequence_len, num_classes)
