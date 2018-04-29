@@ -1,4 +1,4 @@
-from lib.embedding import word2vec, fasttext
+from lib.embedding import word2vec
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.utils import resample
@@ -6,33 +6,9 @@ from tensorflow.python.keras.layers import Dense, Input, Embedding, LSTM, Bidire
 from tensorflow.python.keras.layers import Conv1D, MaxPooling1D, Dropout, GlobalMaxPool1D
 from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.python.keras.models import Model
-from tensorflow.python.keras import backend as K
-from tensorflow.python.keras import initializers
-from keras.engine.topology import Layer
 from lib.util import preprocessing
 import tensorflow as tf
 import pandas as pd
-
-
-class Attention(Layer):
-    def __init__(self, **kwargs):
-        self.init = initializers.get('normal')
-        super(Attention, self).__init__(** kwargs)
-
-    def build(self, input_shape):
-        self.W = self.init((input_shape[-1],))
-        self.trainable_weights = [self.W]
-        super(Attention, self).build(input_shape)
-
-    def call(self, x, mask=None):
-        eij = K.tanh(K.squeeze(K.dot(x, K.expand_dims(self.W)), axis=-1))
-        ai = K.exp(eij)
-        weights = ai/K.expand_dims(K.sum(ai, axis=1),1)
-        weighted_input = x*K.expand_dims(weights,2)
-        return K.sum(weighted_input, axis=1)
-
-    def compute_output_shape(self, input_shape):
-        return input_shape[0], input_shape[-1]
 
 
 def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim, max_sequence_len, max_sequences, num_classes):
@@ -57,7 +33,7 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
         preds = Dense(num_classes, activation='softmax')(l_lstm_2)
         model = Model(sequence_input_2, preds)
 
-        early_stopping_callback = EarlyStopping(patience=5, monitor='val_loss', min_delta=0.05)
+        early_stopping_callback = EarlyStopping(patience=5, monitor='val_acc')
         checkpoint_callback = ModelCheckpoint(filepath="data/models/hi_cnn_lstm/%s.hdf5" % dataset_name, monitor='val_acc', verbose=1, save_best_only=True)
         model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         model.summary()
@@ -99,16 +75,19 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, ma
     print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (mean_accuracy/n_splits, [precision/n_splits for precision in precision_list], [recall/n_splits for recall in recall_list]))
 
 
-def bootstrap_trend(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, num_classes):
-    train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.2, random_state=157)
+def bootstrap_trend(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, max_sequences, num_classes):
+    train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.3, random_state=157, stratify=data_y)
     print("Metrics: Precision, Recall, F_Score, Support")
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
     accuracy_list = list()
-    for sample_rate in [1.0]:
-        n_samples = int(sample_rate * len(train_y) + 1)
-        train_xr, train_yr = resample(train_x, train_y, n_samples=n_samples, random_state=157)
-        cnn_pipeline = train(train_xr, train_yr, test_x, test_y, embedding_map, embedding_dim, max_sequence_len, num_classes)
+    for sample_rate in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
+        if sample_rate == 1.0:
+            train_xr, train_yr = train_x, train_y
+        else:
+            n_samples = int(sample_rate * len(train_y) + 1)
+            train_xr, train_yr = resample(train_x, train_y, n_samples=n_samples, random_state=157)
+        cnn_pipeline = train(train_xr, train_yr, test_x, test_y, embedding_map, embedding_dim, max_sequence_len, max_sequences, num_classes)
         metrics = evaluate(cnn_pipeline, test_x, test_y)
         print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
         precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
@@ -118,51 +97,58 @@ def bootstrap_trend(data_x, data_y, embedding_map, embedding_dim, max_sequence_l
     print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (sum(accuracy_list)/9, [precision/9 for precision in precision_list], [recall/9 for recall in recall_list]))
 
 
-def hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokenizer, max_sequence_len, num_classes):
+def hard_cross_val(data_1, data_2, data_3, data_4, data_5, data_6, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes):
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
     mean_accuracy = 0
-    data_12 = pd.concat([data_1, data_2]).as_matrix()
-    data_x12, data_y12_cat, _word_index, _max_sequence_len = preprocessing.make_network_ready(data_12, num_classes, tokenizer, max_sequence_len, enforce_max_len=True)
-    data_x3, data_y3_cat, _word_index, _max_sequence_len = preprocessing.make_network_ready(data_3.as_matrix(), num_classes, tokenizer, max_sequence_len, enforce_max_len=True)
-    metrics = evaluate(train(data_x12, data_y12_cat, data_x3, data_y3_cat, embedding_map, embedding_dim, max_sequence_len, num_classes), data_x3, data_y3_cat)
-    mean_accuracy += metrics['micro-average'][0]
-    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
-    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
-    print(metrics)
-    data_23 = pd.concat([data_2, data_3]).as_matrix()
-    data_x23, data_y23_cat, _word_index, _max_sequence_len = preprocessing.make_network_ready(data_23, num_classes, tokenizer, max_sequence_len, enforce_max_len=True)
-    data_x1, data_y1_cat, _word_index, _max_sequence_len = preprocessing.make_network_ready(data_1.as_matrix(), num_classes, tokenizer, max_sequence_len, enforce_max_len=True)
-    metrics = evaluate(train(data_x23, data_y23_cat, data_x1, data_y1_cat, embedding_map, embedding_dim, max_sequence_len, num_classes), data_x1, data_y1_cat)
-    mean_accuracy += metrics['micro-average'][0]
-    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
-    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
-    print(metrics)
-    data_13 = pd.concat([data_1, data_3]).as_matrix()
-    data_x13, data_y13_cat, _word_index, _max_sequence_len = preprocessing.make_network_ready(data_13, num_classes, tokenizer, max_sequence_len, enforce_max_len=True)
-    data_x2, data_y2_cat, _word_index, _max_sequence_len = preprocessing.make_network_ready(data_2.as_matrix(), num_classes, tokenizer, max_sequence_len, enforce_max_len=True)
-    metrics = evaluate(train(data_x13, data_y13_cat, data_x2, data_y2_cat, embedding_map, embedding_dim, max_sequence_len, num_classes), data_x2, data_y2_cat)
-    mean_accuracy += metrics['micro-average'][0]
-    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
-    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
-    print(metrics)
-    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (mean_accuracy/3, [precision/3 for precision in precision_list], [recall/3 for recall in recall_list]))
+    data_1 = resample(data_1, n_samples=400, random_state=129)
+    data_2 = resample(data_2, n_samples=400, random_state=253)
+    data_3 = resample(data_3, n_samples=400, random_state=501)
+    data_4 = resample(data_4, n_samples=400, random_state=311)
+    data_5 = resample(data_5, n_samples=400, random_state=187)
+    data_6 = resample(data_6, n_samples=400, random_state=137)
+    data_list = [data_1, data_2, data_3, data_4, data_5, data_6]
+
+    for i0 in range(len(data_list)):
+        data_test = data_list[i0].as_matrix()
+        data_train = list()
+        for i1 in range(len(data_list)):
+            if i1 != i0:
+                data_train.append(data_list[i1])
+        data_train = pd.concat(data_train).as_matrix()
+        train_x, train_y_cat, _word_index, _max_sequence_len, _max_sequences = preprocessing.make_hierarchical_network_ready(data_train, num_classes, tokenizer, max_sequence_len,
+                                                                                                                             max_sequences, enforce_max_len=True)
+        test_x, test_y_cat, _word_index, _max_sequence_len, _max_sequences = preprocessing.make_hierarchical_network_ready(data_test, num_classes, tokenizer, max_sequence_len,
+                                                                                                                           max_sequences, enforce_max_len=True)
+        cnn_pipeline = train(train_x, train_y_cat, test_x, test_y_cat, embedding_map, embedding_dim, max_sequence_len, max_sequences, num_classes)
+        metrics = evaluate(cnn_pipeline, test_x, test_y_cat)
+        mean_accuracy += metrics['micro-average'][0]
+        precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
+        recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
+        print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+
+    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (mean_accuracy/len(data_list),
+                                                                     [precision/len(data_list) for precision in precision_list],
+                                                                     [recall/len(data_list) for recall in recall_list]))
 
 
 if __name__ == '__main__':
-    num_classes = 3
+    num_classes = 2
     embedding_dim = 300
-    dataset_name = "StackOverflowEmotions"
-    # data = pd.read_csv("data/labelled/AppReviews.csv").as_matrix()
-    data = pd.read_csv("data/labelled/StackOverflowEmotions.csv", encoding='latin1').as_matrix()
-    # data_1 = pd.read_csv("data/labelled/Gerrit.csv")
-    # data_2 = pd.read_csv("data/labelled/JIRA.csv")
-    # data_3 = pd.read_csv("data/labelled/StackOverflowEmotions2.csv", encoding='latin1')
-    # data = pd.concat([data_1, data_2, data_3]).as_matrix()
+    dataset_name = "Combined"
+    # data = pd.read_csv("data/labelled/Jira.csv").as_matrix()
+    # data = pd.read_csv("data/labelled/StackOverflowEmotions.csv", encoding='latin1').as_matrix()
+    data_1 = pd.read_csv("data/labelled/Gerrit.csv")
+    data_2 = pd.read_csv("data/labelled/JIRA.csv")
+    data_3 = pd.read_csv("data/labelled/AppReviews2.csv")
+    data_4 = pd.read_csv("data/labelled/StackOverflowEmotions2.csv", encoding='latin1')
+    data_5 = pd.read_csv("data/labelled/StackOverflowSentiments2.csv", encoding='latin1')
+    data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries2.csv", encoding='latin1')
+    data = pd.concat([data_1, data_2, data_3, data_4, data_5, data_6]).as_matrix()
     data_x, data_y_cat, tokenizer, max_sequence_len, max_sequences = preprocessing.make_hierarchical_network_ready(data, num_classes)
     print("Dataset loaded to memory. Size:", len(data_y_cat))
     embedding_map = word2vec.embedding_matrix(tokenizer.word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
     # embedding_map = word2vec.embedding_matrix(word_index)
-    cross_val(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, max_sequences, num_classes, n_splits=10)
-    # bootstrap_trend(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, num_classes)
-    # hard_cross_val(data_1, data_2, data_3, embedding_map, embedding_dim, tokenizer, max_sequence_len, num_classes)
+    # cross_val(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, max_sequences, num_classes, n_splits=10)
+    # bootstrap_trend(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, max_sequences, num_classes)
+    hard_cross_val(data_1, data_2, data_3, data_4, data_5, data_6, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes)

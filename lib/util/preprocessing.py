@@ -85,8 +85,8 @@ def make_hierarchical_network_ready(data, num_classes, tokenizer=None, max_seque
     data_x = np.zeros((len(data), max_sequences, max_sequence_len), dtype='int32')
     print("Max. Seq. Length: %d; Max Seq.: %d" %(max_sequence_len, max_sequences))
 
+    index_filter = set()
     if filter_words:
-        index_filter = set()
         for word, i in tokenizer.word_index.items():
             if not (word.isalpha() or "'" in word or "-" in word):
                 index_filter.add(i)
