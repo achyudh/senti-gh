@@ -65,7 +65,7 @@ def make_hierarchical_network_ready(data, num_classes, tokenizer=None, max_seque
         temp_data.append(' '.join(seq.split()))
     if tokenizer is None:
         tokenizer = Tokenizer(filters='!"#$%&()*+,./:;<=>?@[\]^_`{|}~', lower=True)
-    tokenizer.fit_on_texts(temp_data)
+        tokenizer.fit_on_texts(temp_data)
 
     raw_data = list()
     max_sequences_actual = -1
