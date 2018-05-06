@@ -267,9 +267,10 @@ def cross_val(dataset, data_y, classifier, num_classes=2, n_splits=10):
     skf = StratifiedKFold(n_splits, shuffle=True,random_state=157)
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
+    f1_list = [0 for i in range(num_classes)]
     mean_accuracy = 0
     count = 1
-    for train, test in kf.split(dataset, data_y):
+    for train, test in skf.split(dataset, data_y):
         print("Iteration %d of %d" % (count, n_splits))
         classifier_model = SentiCR(algo=classifier, training_data=dataset[train])
         test_comments = [comments.text for comments in dataset[test]]
@@ -317,72 +318,37 @@ def bootstrap_trend(dataset, classifier, num_classes):
                                                                                   [recall/9 for recall in recall_list], [f1/9 for f1 in f1_list]))
 
 
-def hard_cross_val(data_1, data_2, data_3, classifier, num_classes):
+def cross_dataset(data_list, classifier, num_classes):
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
-    mean_accuracy = 0
+    f1_list = [0 for i in range(num_classes)]
+    accuracy_list = list()
 
-    data_12 = list()
-    raw_data = pd.concat([data_1, data_2]).as_matrix()
-    for item in raw_data:
-        comment = SentimentData(str(item[0]), item[1])
-        data_12.append(comment)
-    test_data = list()
-    for item in data_3.as_matrix():
-        comment = SentimentData(str(item[0]), item[1])
-        test_data.append(comment)
-    classifier_model = SentiCR(algo=classifier, training_data=data_12)
-    test_comments = [comments.text for comments in test_data]
-    test_ratings = [comments.rating for comments in test_data]
-    pred = classifier_model.get_sentiment_polarity_collection(test_comments)
-    metrics = {"individual": precision_recall_fscore_support(test_ratings, pred),
-               "micro-average": precision_recall_fscore_support(test_ratings, pred, average="micro")}
-    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
-    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
-    mean_accuracy += metrics['micro-average'][0]
-    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+    # Uncomment for resampling:
+    # for i0 in range(len(data_list)):
+    #     data_list[i0] = resample(data_list[i0], n_samples=1500, random_state=157, replace=False)
 
-    data_23 = list()
-    raw_data = pd.concat([data_2, data_3]).as_matrix()
-    for item in raw_data:
-        comment = SentimentData(str(item[0]), item[1])
-        data_23.append(comment)
-    test_data = list()
-    for item in data_1.as_matrix():
-        comment = SentimentData(str(item[0]), item[1])
-        test_data.append(comment)
-    classifier_model = SentiCR(algo=classifier, training_data=data_23)
-    test_comments = [comments.text for comments in test_data]
-    test_ratings = [comments.rating for comments in test_data]
-    pred = classifier_model.get_sentiment_polarity_collection(test_comments)
-    metrics = {"individual": precision_recall_fscore_support(test_ratings, pred),
-               "micro-average": precision_recall_fscore_support(test_ratings, pred, average="micro")}
-    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
-    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
-    mean_accuracy += metrics['micro-average'][0]
-    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
-
-    data_13 = list()
-    raw_data = pd.concat([data_1, data_3]).as_matrix()
-    for item in raw_data:
-        comment = SentimentData(str(item[0]), item[1])
-        data_13.append(comment)
-    test_data = list()
-    for item in data_2.as_matrix():
-        comment = SentimentData(str(item[0]), item[1])
-        test_data.append(comment)
-    classifier_model = SentiCR(algo=classifier, training_data=data_13)
-    test_comments = [comments.text for comments in test_data]
-    test_ratings = [comments.rating for comments in test_data]
-    pred = classifier_model.get_sentiment_polarity_collection(test_comments)
-    metrics = {"individual": precision_recall_fscore_support(test_ratings, pred),
-               "micro-average": precision_recall_fscore_support(test_ratings, pred, average="micro")}
-    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
-    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
-    mean_accuracy += metrics['micro-average'][0]
-    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
-
-    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (mean_accuracy/3, [precision/3 for precision in precision_list], [recall/3 for recall in recall_list]))
+    for i0 in range(len(data_list)):
+        train_dataset = data_list[i0]
+        classifier_model = SentiCR(algo=classifier, training_data=train_dataset)
+        for i1 in range(len(data_list)):
+            if i1 != i0:
+                test_dataset = data_list[i1]
+                test_x = [comments.text for comments in test_dataset]
+                test_y = [comments.rating for comments in test_dataset]
+                predict_y = classifier_model.get_sentiment_polarity_collection(test_x)
+                metrics = {"individual": precision_recall_fscore_support(test_y, predict_y),
+                           "micro-average": precision_recall_fscore_support(test_y, predict_y, average="micro")}
+                accuracy_list.append(metrics['micro-average'][0])
+                precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
+                recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
+                f1_list = [x + y for x, y in zip(metrics['individual'][2], f1_list)]
+                print(i0, i1, "Accuracy: %s, Precision: %s, Recall: %s, F1: %s" % (metrics['micro-average'][0], metrics['individual'][0],
+                                                                                   metrics['individual'][1], metrics['individual'][2]))
+    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s, Mean F1: %s" % (sum(accuracy_list)/len(accuracy_list),
+                                                                                  [precision/len(accuracy_list) for precision in precision_list],
+                                                                                  [recall/len(accuracy_list) for recall in recall_list],
+                                                                                  [f1/len(accuracy_list) for f1 in f1_list]))
 
 
 if __name__ == '__main__':
@@ -418,4 +384,3 @@ if __name__ == '__main__':
     # data = np.array(data)
     # cross_val(data, data_y, classifier, num_classes=2)
     # bootstrap_trend(data, classifier, num_classes=2)
-    hard_cross_val(data_1, data_2, data_3, classifier, num_classes=2)

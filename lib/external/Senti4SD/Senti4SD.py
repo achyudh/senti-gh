@@ -105,7 +105,7 @@ def bootstrap_trend(data_x, data_y):
                                                                                   [recall/9 for recall in recall_list], [f1/9 for f1 in f1_list]))
 
 
-def cross_dataset(data_list, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes):
+def cross_dataset(data_list, num_classes):
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
     f1_list = [0 for i in range(num_classes)]
