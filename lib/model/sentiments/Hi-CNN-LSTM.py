@@ -3,7 +3,7 @@ from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.utils import resample
 from tensorflow.python.keras.layers import Dense, Input, Embedding, LSTM, Bidirectional, TimeDistributed
-from tensorflow.python.keras.layers import Conv1D, MaxPooling1D, Dropout, GlobalMaxPool1D
+from tensorflow.python.keras.layers import Conv1D, MaxPooling1D, Dropout, GlobalMaxPool1D, Flatten
 from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.python.keras.models import Model
 from lib.util import preprocessing
@@ -13,7 +13,7 @@ import time
 
 
 def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes, dataset_name):
-    with tf.device('/gpu:0'):
+    with tf.device('/gpu:1'):
         embedding_layer_1 = Embedding(len(tokenizer.word_index) + 1, embedding_dim, weights=[embedding_map],
                                       input_length=max_sequence_len, trainable=False)
         sequence_input_1 = Input(shape=(max_sequence_len,), dtype='int32')
@@ -27,7 +27,7 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
 
         sequence_input_2 = Input(shape=(max_sequences,max_sequence_len), dtype='int32')
         encoder_2 = TimeDistributed(encoder_1)(sequence_input_2)
-        l_lstm_2 = Bidirectional(LSTM(25))(encoder_2)
+        l_lstm_2 = Bidirectional(LSTM(25, dropout=0.2, recurrent_dropout=0.2))(encoder_2)
 
         # l_dense1 = Dense(20, activation='relu')(l_lstm)
         # l_dropout1 = Dropout(0.2)(l_dense1)
