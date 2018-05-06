@@ -291,23 +291,30 @@ def cross_val(dataset, data_y, classifier, num_classes=2, n_splits=10):
 def bootstrap_trend(dataset, classifier, num_classes):
     train_dataset, test_dataset = train_test_split(dataset, test_size=0.2, random_state=157)
     test_x = [comments.text for comments in test_dataset]
-    text_y = [comments.rating for comments in test_dataset]
+    test_y = [comments.rating for comments in test_dataset]
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
+    f1_list = [0 for i in range(num_classes)]
     accuracy_list = list()
+
     for sample_rate in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
         n_samples = int(sample_rate * len(train_dataset) + 1)
         train_xr = resample(train_dataset, n_samples=n_samples, random_state=157)
         classifier_model = SentiCR(algo=classifier, training_data=train_xr)
         predict_y = classifier_model.get_sentiment_polarity_collection(test_x)
-        metrics = {"individual": precision_recall_fscore_support(text_y, predict_y),
-                   "micro-average": precision_recall_fscore_support(text_y, predict_y, average="micro")}
-        print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+        metrics = {"individual": precision_recall_fscore_support(test_y, predict_y),
+                   "micro-average": precision_recall_fscore_support(test_y, predict_y, average="micro")}
+        print("Accuracy: %s, Precision: %s, Recall: %s, F1: %s" % (metrics['micro-average'][0], metrics['individual'][0],
+                                                                   metrics['individual'][1], metrics['individual'][2]))
         precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
         recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
+        f1_list = [x + y for x, y in zip(metrics['individual'][2], f1_list)]
         accuracy_list.append(metrics['micro-average'][0])
-    print(accuracy_list)
-    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (sum(accuracy_list)/9, [precision/9 for precision in precision_list], [recall/9 for recall in recall_list]))
+
+    print("Accuracies:", accuracy_list)
+    print("Dataset sizes:", [int(sample_rate * len(train_dataset) + 1) for sample_rate in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]])
+    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s, Mean F1: %s" % (sum(accuracy_list)/9, [precision/9 for precision in precision_list],
+                                                                                  [recall/9 for recall in recall_list], [f1/9 for f1 in f1_list]))
 
 
 def hard_cross_val(data_1, data_2, data_3, classifier, num_classes):

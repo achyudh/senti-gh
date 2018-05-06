@@ -80,4 +80,5 @@ if __name__ == '__main__':
 
     # print("Dataset loaded to memory. Size:", len(data_y))
     metrics = evaluate(test_x, test_y, has_neutral=False)
-    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+    print("Accuracy: %s, Precision: %s, Recall: %s, F1: %s" % (metrics['micro-average'][0], metrics['individual'][0],
+                                                               metrics['individual'][1], metrics['individual'][2]))

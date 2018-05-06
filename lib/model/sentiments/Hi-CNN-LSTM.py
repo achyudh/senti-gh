@@ -83,20 +83,14 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, ma
                                                                                  [recall/n_splits for recall in recall_list], [f1/n_splits for f1 in f1_list]))
 
 
-def bootstrap_trend(data_list, embedding_dim, num_classes):
+def bootstrap_trend(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, max_sequences, num_classes):
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
+    f1_list = [0 for i in range(num_classes)]
     accuracy_list = list()
-
-    for i0 in range(len(data_list)):
-        data_list[i0] = resample(data_list[i0], n_samples=1500, random_state=157, replace=False)
-    data = pd.concat(data_list).as_matrix()
-    data_x, data_y_cat, tokenizer, max_sequence_len, max_sequences = preprocessing.make_hierarchical_network_ready(data, num_classes)
-    embedding_map = word2vec.embedding_matrix(tokenizer.word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
     train_x, test_x, train_y, test_y = train_test_split(data_x, data_y_cat, test_size=0.3, random_state=157, stratify=data_y_cat)
-    print("Metrics: Precision, Recall, F_Score, Support")
 
-    for sample_rate in [0.8, 1.0]:
+    for sample_rate in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
         if sample_rate == 1.0:
             train_xr, train_yr = train_x, train_y
         else:
@@ -104,12 +98,17 @@ def bootstrap_trend(data_list, embedding_dim, num_classes):
             train_xr, train_yr = resample(train_x, train_y, n_samples=n_samples, random_state=157)
         cnn_pipeline = train(train_xr, train_yr, test_x, test_y, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes, "Combined_%f" % sample_rate)
         metrics = evaluate(cnn_pipeline, test_x, test_y)
-        print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+        print("Accuracy: %s, Precision: %s, Recall: %s, F1: %s" % (metrics['micro-average'][0], metrics['individual'][0],
+                                                                   metrics['individual'][1], metrics['individual'][2]))
         precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
         recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
+        f1_list = [x + y for x, y in zip(metrics['individual'][2], f1_list)]
         accuracy_list.append(metrics['micro-average'][0])
-    print(accuracy_list)
-    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (sum(accuracy_list)/9, [precision/9 for precision in precision_list], [recall/9 for recall in recall_list]))
+
+    print("Accuracies:", accuracy_list)
+    print("Dataset sizes:", [int(sample_rate * len(train_y) + 1) for sample_rate in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]])
+    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s, Mean F1: %s" % (sum(accuracy_list)/9, [precision/9 for precision in precision_list],
+                                                                                  [recall/9 for recall in recall_list], [f1/9 for f1 in f1_list]))
 
 
 def cross_dataset(data_list, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes):
