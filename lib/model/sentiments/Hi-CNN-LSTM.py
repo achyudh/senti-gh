@@ -9,6 +9,7 @@ from tensorflow.python.keras.models import Model
 from lib.util import preprocessing
 import tensorflow as tf
 import pandas as pd
+import time
 
 
 def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes, dataset_name):
@@ -64,9 +65,13 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, ma
     for train_index, test_index in skf.split(data_x, data_y.argmax(axis=1)):
         print("Iteration %d of %d" % (iteration, n_splits))
         iteration += 1
+        train_start_time = time.time()
         model = train(data_x[train_index], data_y[train_index], data_x[test_index], data_y[test_index], embedding_map,
                       embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes, dataset_name)
+        print("Train time:", time.time() - train_start_time)
+        test_start_time = time.time()
         metrics = evaluate(model, data_x[test_index], data_y[test_index])
+        print("Test time:", time.time() - test_start_time)
         precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
         recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
         mean_accuracy += metrics['micro-average'][0]
@@ -104,52 +109,50 @@ def bootstrap_trend(data_list, embedding_dim, num_classes):
     print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (sum(accuracy_list)/9, [precision/9 for precision in precision_list], [recall/9 for recall in recall_list]))
 
 
-def hard_cross_val(data_list, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes):
+def cross_dataset(data_list, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes):
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
     mean_accuracy = 0
 
-    for i0 in range(len(data_list)):
-        data_list[i0] = resample(data_list[i0], n_samples=1500, random_state=157, replace=False)
+    # Uncomment for resampling:
+    # for i0 in range(len(data_list)):
+    #     data_list[i0] = resample(data_list[i0], n_samples=1500, random_state=157, replace=False)
 
     for i0 in range(len(data_list)):
         data_test = data_list[i0].as_matrix()
         data_train = list()
         for i1 in range(len(data_list)):
             if i1 != i0:
-                data_train.append(data_list[i1])
-        data_train = pd.concat(data_train).as_matrix()
-        train_x, train_y_cat, _word_index, _max_sequence_len, _max_sequences = preprocessing.make_hierarchical_network_ready(data_train, num_classes, tokenizer, max_sequence_len, max_sequences, enforce_max_len=True)
-        test_x, test_y_cat, _word_index, _max_sequence_len, _max_sequences = preprocessing.make_hierarchical_network_ready(data_test, num_classes, tokenizer, max_sequence_len, max_sequences, enforce_max_len=True)
-        cnn_pipeline = train(train_x, train_y_cat, test_x, test_y_cat, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes, dataset_name)
-        metrics = evaluate(cnn_pipeline, test_x, test_y_cat)
-        mean_accuracy += metrics['micro-average'][0]
-        precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
-        recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
-        print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
-
-    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (mean_accuracy/len(data_list), [precision/len(data_list) for precision in precision_list],
-                                                                     [recall/len(data_list) for recall in recall_list]))
+                data_train = data_list[i1].as_matrix()
+                train_x, train_y_cat, _word_index, _max_sequence_len, _max_sequences = preprocessing.make_hierarchical_network_ready(data_train, num_classes, tokenizer, max_sequence_len, max_sequences, enforce_max_len=True)
+                test_x, test_y_cat, _word_index, _max_sequence_len, _max_sequences = preprocessing.make_hierarchical_network_ready(data_test, num_classes, tokenizer, max_sequence_len, max_sequences, enforce_max_len=True)
+                cnn_pipeline = train(train_x, train_y_cat, test_x, test_y_cat, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes, dataset_name)
+                metrics = evaluate(cnn_pipeline, test_x, test_y_cat)
+                mean_accuracy += metrics['micro-average'][0]
+                precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
+                recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
+                print(i0, i1, "Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (mean_accuracy/len(mean_accuracy), [precision/len(mean_accuracy) for precision in precision_list],
+                                                                     [recall/len(mean_accuracy) for recall in recall_list]))
 
 
 if __name__ == '__main__':
     num_classes = 2
     embedding_dim = 300
     dataset_name = 'Combined'
-    data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
+    # data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
     # data = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1').as_matrix()
-    # data_1 = pd.read_csv("data/labelled/Gerrit.csv")
-    # data_2 = pd.read_csv("data/labelled/JIRA.csv")
-    # data_3 = pd.read_csv("data/labelled/AppReviews2.csv")
-    # data_4 = pd.read_csv("data/labelled/StackOverflowEmotions.csv", encoding='latin1')
-    # data_5 = pd.read_csv("data/labelled/StackOverflowSentiments.csv", encoding='latin1')
-    # data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1')
-    # data_list = [data_4, data_5, data_6]
-    # data = pd.concat(data_list).as_matrix()
+    data_1 = pd.read_csv("data/labelled/JIRA.csv")
+    data_2 = pd.read_csv("data/labelled/AppReviews2.csv")
+    data_3 = pd.read_csv("data/labelled/Gerrit.csv")
+    data_4 = pd.read_csv("data/labelled/StackOverflowEmotions2.csv", encoding='latin1')
+    data_5 = pd.read_csv("data/labelled/StackOverflowSentiments2.csv", encoding='latin1')
+    data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries2.csv", encoding='latin1')
+    data_list = [data_1, data_2, data_3, data_4, data_5, data_6]
+    data = pd.concat(data_list).as_matrix()
     data_x, data_y_cat, tokenizer, max_sequence_len, max_sequences = preprocessing.make_hierarchical_network_ready(data, num_classes)
     print("Dataset loaded to memory. Size:", len(data_y_cat))
     embedding_map = word2vec.embedding_matrix(tokenizer.word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
-    # embedding_map = word2vec.embedding_matrix(tokenizer.word_index)
-    cross_val(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, max_sequences,num_classes, n_splits=10)
+    # cross_val(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, max_sequences,num_classes, n_splits=10)
     # bootstrap_trend(data_list, embedding_dim, num_classes)
-    # hard_cross_val(data_list, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes)
+    cross_dataset(data_list, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes)
