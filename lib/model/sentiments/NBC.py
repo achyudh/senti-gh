@@ -37,16 +37,19 @@ def cross_val(data_x, data_y, num_classes, n_splits=5):
     print("Performing cross validation (%d-fold)..." % n_splits)
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
+    f1_list = [0 for i in range(num_classes)]
     mean_accuracy = 0
     for train_index, test_index in skf.split(data_x, data_y):
         sentim_analyzer, classifier = train(data_x[train_index], data_y[train_index])
         metrics = evaluate(sentim_analyzer, classifier, data_x[test_index], data_y[test_index])
         precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
         recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
+        f1_list = [x + y for x, y in zip(metrics['individual'][2], f1_list)]
         mean_accuracy += metrics['micro-average'][0]
-        print("Precision, Recall, F_Score, Support")
-        print(metrics)
-    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (mean_accuracy/n_splits, [precision/n_splits for precision in precision_list], [recall/n_splits for recall in recall_list]))
+        print("Accuracy: %s, Precision: %s, Recall: %s, F1: %s" % (metrics['micro-average'][0], metrics['individual'][0],
+                                                                   metrics['individual'][1], metrics['individual'][2]))
+    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s, Mean F1: %s" % (mean_accuracy/n_splits, [precision/n_splits for precision in precision_list],
+                                                                                  [recall/n_splits for recall in recall_list], [f1/n_splits for f1 in f1_list]))
 
 
 def bootstrap_trend(data_x, data_y):
@@ -76,7 +79,7 @@ def bootstrap_trend(data_x, data_y):
                                                                                   [recall/9 for recall in recall_list], [f1/9 for f1 in f1_list]))
 
 
-def cross_dataset(data_list, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes):
+def cross_dataset(data_list, num_classes):
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
     f1_list = [0 for i in range(num_classes)]
