@@ -79,8 +79,6 @@ def cross_val(data_x, data_y, embedding_map, embedding_dim, max_sequence_len, ma
         print("Accuracy: %s, Precision: %s, Recall: %s, F1: %s" % (metrics['micro-average'][0], metrics['individual'][0],
                                                                    metrics['individual'][1], metrics['individual'][2]))
         mean_accuracy += metrics['micro-average'][0]
-        print("Precision, Recall, F_Score, Support")
-        print(metrics)
     print("Mean accuracy: %s Mean precision: %s, Mean recall: %s, Mean F1: %s" % (mean_accuracy/n_splits, [precision/n_splits for precision in precision_list],
                                                                                  [recall/n_splits for recall in recall_list], [f1/n_splits for f1 in f1_list]))
 
@@ -142,7 +140,7 @@ def cross_dataset(data_list, embedding_map, embedding_dim, tokenizer, max_sequen
     print("Mean accuracy: %s Mean precision: %s, Mean recall: %s, Mean F1: %s" % (sum(accuracy_list)/len(accuracy_list),
                                                                                   [precision/len(accuracy_list) for precision in precision_list],
                                                                                   [recall/len(accuracy_list) for recall in recall_list],
-                                                                                  [f1 / len(accuracy_list) for f1 in f1_list]))
+                                                                                  [f1/len(accuracy_list) for f1 in f1_list]))
 
 
 if __name__ == '__main__':
