@@ -95,51 +95,35 @@ def bootstrap_trend(data_x, data_y):
     print(accuracy_list)
 
 
-def hard_cross_val(data_1, data_2, data_3, num_classes):
+def cross_dataset(data_list, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes):
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
     mean_accuracy = 0
-    data_x1 = np.array([x.lower().split() for x in data_1.as_matrix()[:,0]])
-    data_y1 = np.array([int(x) for x in data_1.as_matrix()[:,1]])
-    data_x2 = np.array([x.lower().split() for x in data_2.as_matrix()[:,0]])
-    data_y2 = np.array([int(x) for x in data_2.as_matrix()[:,1]])
-    data_x3 = np.array([x.lower().split() for x in data_3.as_matrix()[:,0]])
-    data_y3 = np.array([int(x) for x in data_3.as_matrix()[:,1]])
 
-    data_12 = pd.concat([data_1, data_2]).as_matrix()
-    data_x12 = np.array([x.lower().split() for x in data_12[:,0]])
-    data_y12 = np.array([int(x) for x in data_12[:,1]])
-    train(data_x12, data_y12)
-    metrics = evaluate(data_x3, data_y3)
-    mean_accuracy += metrics['micro-average'][0]
-    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
-    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
-    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+    # Uncomment for resampling:
+    # for i0 in range(len(data_list)):
+    #     data_list[i0] = resample(data_list[i0], n_samples=1500, random_state=157, replace=False)
 
-    data_23 = pd.concat([data_2, data_3]).as_matrix()
-    data_x23 = np.array([x.lower().split() for x in data_23[:,0]])
-    data_y23 = np.array([int(x) for x in data_23[:,1]])
-    train(data_x23, data_y23)
-    metrics = evaluate(data_x1, data_y1)
-    mean_accuracy += metrics['micro-average'][0]
-    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
-    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
-    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
-
-    data_13 = pd.concat([data_1, data_3]).as_matrix()
-    data_x13 = np.array([x.lower().split() for x in data_13[:,0]])
-    data_y13 = np.array([int(x) for x in data_13[:,1]])
-    train(data_x13, data_y13)
-    metrics = evaluate(data_x2, data_y2)
-    mean_accuracy += metrics['micro-average'][0]
-    precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
-    recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
-    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
-    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (mean_accuracy/3, [precision/3 for precision in precision_list], [recall/3 for recall in recall_list]))
-
+    for i0 in range(len(data_list)):
+        data_train = data_list[i0].as_matrix()
+        train_x = np.array([x.lower() for x in data_train[:,0]])
+        train_y = np.array([int(x) for x in data_train[:,1]])
+        train(train_x, train_y)
+        for i1 in range(len(data_list)):
+            if i1 != i0:
+                data_test = data_list[i1].as_matrix()
+                test_x = np.array([x.lower() for x in data_test[:, 0]])
+                test_y = np.array([int(x) for x in data_test[:, 1]])
+                metrics = evaluate(test_x, test_y)
+                mean_accuracy += metrics['micro-average'][0]
+                precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
+                recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
+                print(i0, i1, "Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+    print("Mean accuracy: %s Mean precision: %s, Mean recall: %s" % (mean_accuracy/len(mean_accuracy), [precision/len(mean_accuracy) for precision in precision_list],
+                                                                     [recall/len(mean_accuracy) for recall in recall_list]))
 
 if __name__ == '__main__':
-    num_classes = 3
+    num_classes = 2
     # data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
     # data = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1').as_matrix()
     data_1 = pd.read_csv("data/labelled/JIRA.csv")
@@ -148,38 +132,10 @@ if __name__ == '__main__':
     data_4 = pd.read_csv("data/labelled/StackOverflowEmotions.csv", encoding='latin1')
     data_5 = pd.read_csv("data/labelled/StackOverflowSentiments.csv", encoding='latin1')
     data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1')
-    # data_list = [data_4, data_5, data_6]
-    # hard_cross_val(data_1, data_2, data_3, num_classes)
-    # evaluate_custom(data_1, data_2, data_3, num_classes)
-    # data = pd.concat([data_1, data_2, data_3]).as_matrix()
-    # bootstrap_trend(data_x, data_y)
-    data = data_1.as_matrix()
-    data_x = np.array([x.lower() for x in data[:,0]])
-    data_y = np.array([int(x) for x in data[:,1]])
-    print("Dataset loaded to memory. Size:", len(data_y))
-    cross_val(data_x, data_y, num_classes, n_splits=10)
-    data = data_2.as_matrix()
-    data_x = np.array([x.lower() for x in data[:,0]])
-    data_y = np.array([int(x) for x in data[:,1]])
-    print("Dataset loaded to memory. Size:", len(data_y))
-    cross_val(data_x, data_y, num_classes, n_splits=10)
-    data = data_3.as_matrix()
-    data_x = np.array([x.lower() for x in data[:,0]])
-    data_y = np.array([int(x) for x in data[:,1]])
-    print("Dataset loaded to memory. Size:", len(data_y))
-    cross_val(data_x, data_y, num_classes, n_splits=10)
-    data = data_4.as_matrix()
-    data_x = np.array([x.lower() for x in data[:,0]])
-    data_y = np.array([int(x) for x in data[:,1]])
-    print("Dataset loaded to memory. Size:", len(data_y))
-    cross_val(data_x, data_y, num_classes, n_splits=10)
-    data = data_5.as_matrix()
-    data_x = np.array([x.lower() for x in data[:,0]])
-    data_y = np.array([int(x) for x in data[:,1]])
-    print("Dataset loaded to memory. Size:", len(data_y))
-    cross_val(data_x, data_y, num_classes, n_splits=10)
-    data = data_6.as_matrix()
-    data_x = np.array([x.lower() for x in data[:,0]])
-    data_y = np.array([int(x) for x in data[:,1]])
-    print("Dataset loaded to memory. Size:", len(data_y))
-    cross_val(data_x, data_y, num_classes, n_splits=10)
+    data_list = [data_1, data_2, data_3, data_4, data_5, data_6]
+    # data = data_1.as_matrix()
+    # data_x = np.array([x.lower() for x in data[:,0]])
+    # data_y = np.array([int(x) for x in data[:,1]])
+    # print("Dataset loaded to memory. Size:", len(data_y))
+    # cross_val(data_x, data_y, num_classes, n_splits=10)
+    cross_dataset(data_list, num_classes)

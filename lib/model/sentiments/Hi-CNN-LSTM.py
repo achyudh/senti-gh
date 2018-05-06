@@ -119,11 +119,10 @@ def cross_dataset(data_list, embedding_map, embedding_dim, tokenizer, max_sequen
     #     data_list[i0] = resample(data_list[i0], n_samples=1500, random_state=157, replace=False)
 
     for i0 in range(len(data_list)):
-        data_test = data_list[i0].as_matrix()
-        data_train = list()
         for i1 in range(len(data_list)):
             if i1 != i0:
-                data_train = data_list[i1].as_matrix()
+                data_train = data_list[i0].as_matrix()
+                data_test = data_list[i1].as_matrix()
                 train_x, train_y_cat, _word_index, _max_sequence_len, _max_sequences = preprocessing.make_hierarchical_network_ready(data_train, num_classes, tokenizer, max_sequence_len, max_sequences, enforce_max_len=True)
                 test_x, test_y_cat, _word_index, _max_sequence_len, _max_sequences = preprocessing.make_hierarchical_network_ready(data_test, num_classes, tokenizer, max_sequence_len, max_sequences, enforce_max_len=True)
                 cnn_pipeline = train(train_x, train_y_cat, test_x, test_y_cat, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes, dataset_name)
