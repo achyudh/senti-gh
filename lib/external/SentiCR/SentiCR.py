@@ -291,7 +291,7 @@ def cross_val(dataset, data_y, classifier, num_classes=2, n_splits=10):
 
 
 def bootstrap_trend(dataset, classifier, num_classes):
-    train_dataset, test_dataset = train_test_split(dataset, test_size=0.2, random_state=157)
+    train_dataset, test_dataset = train_test_split(dataset, test_size=0.3, random_state=157)
     test_x = [comments.text for comments in test_dataset]
     test_y = [comments.rating for comments in test_dataset]
     precision_list = [0 for i in range(num_classes)]

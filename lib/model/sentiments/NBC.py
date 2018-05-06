@@ -52,9 +52,8 @@ def cross_val(data_x, data_y, num_classes, n_splits=5):
                                                                                   [recall/n_splits for recall in recall_list], [f1/n_splits for f1 in f1_list]))
 
 
-def bootstrap_trend(data_x, data_y):
-    train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.2, random_state=157)
-    print("Metrics: Precision, Recall, F_Score, Support")
+def bootstrap_trend(data_x, data_y, num_classes):
+    train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.3, random_state=157)
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
     f1_list = [0 for i in range(num_classes)]
@@ -117,14 +116,15 @@ if __name__ == '__main__':
     num_classes = 2
     # data = pd.read_csv("data/labelled/JIRA.csv").as_matrix()
     # data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
-    data_1 = pd.read_csv("data/labelled/Gerrit.csv")
-    data_2 = pd.read_csv("data/labelled/JIRA.csv")
-    data_3 = pd.read_csv("data/labelled/StackOverflow2.csv", encoding='latin1')
-    # hard_cross_val(data_1, data_2, data_3, num_classes)
-    # evaluate_custom(data_1, data_2, data_3, num_classes)
-    data = pd.concat([data_1, data_2, data_3]).as_matrix()
-    data_x = np.array([x.lower().split() for x in data[:,0]])
-    data_y = np.array([int(x) for x in data[:,1]])
-    # print("Dataset loaded to memory. Size:", len(data_y))
-    # cross_val(data_x, data_y, num_classes, n_splits=10)
-    bootstrap_trend(data_x, data_y)
+    data_1 = pd.read_csv("data/labelled/JIRA.csv")
+    data_2 = pd.read_csv("data/labelled/AppReviews.csv")
+    data_3 = pd.read_csv("data/labelled/Gerrit.csv")
+    data_4 = pd.read_csv("data/labelled/StackOverflowEmotions.csv", encoding='latin1')
+    data_5 = pd.read_csv("data/labelled/StackOverflowSentiments.csv", encoding='latin1')
+    data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1')
+    data_list = [data_1, data_2, data_3, data_4, data_5, data_6]
+    for dataset in data_list:
+        data = dataset.as_matrix()
+        data_x = np.array([x.lower().split() for x in data[:,0]])
+        data_y = np.array([int(x) for x in data[:,1]])
+        bootstrap_trend(data_x, data_y, num_classes)
