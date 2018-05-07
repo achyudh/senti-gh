@@ -53,7 +53,7 @@ def cross_val(data_x, data_y, num_classes, n_splits=5):
 
 
 def bootstrap_trend(data_x, data_y, num_classes):
-    train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.3, random_state=157)
+    train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.3, random_state=157, stratify=data_y)
     precision_list = [0 for i in range(num_classes)]
     recall_list = [0 for i in range(num_classes)]
     f1_list = [0 for i in range(num_classes)]
@@ -123,7 +123,13 @@ if __name__ == '__main__':
     data_5 = pd.read_csv("data/labelled/StackOverflowSentiments.csv", encoding='latin1')
     data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1')
     data_list = [data_1, data_2, data_3, data_4, data_5, data_6]
+    iter = 0
     for dataset in data_list:
+        iter += 1
+        if iter == 1 or iter == 3:
+            num_classes = 2
+        else:
+            num_classes = 3
         data = dataset.as_matrix()
         data_x = np.array([x.lower().split() for x in data[:,0]])
         data_y = np.array([int(x) for x in data[:,1]])

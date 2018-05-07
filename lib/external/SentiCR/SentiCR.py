@@ -290,8 +290,8 @@ def cross_val(dataset, data_y, classifier, num_classes=2, n_splits=10):
     return mean_accuracy, precision_list, recall_list
 
 
-def bootstrap_trend(dataset, classifier, num_classes):
-    train_dataset, test_dataset = train_test_split(dataset, test_size=0.3, random_state=157)
+def bootstrap_trend(dataset, data_y, classifier, num_classes):
+    train_dataset, test_dataset = train_test_split(dataset, test_size=0.3, random_state=157, stratify=data_y)
     test_x = [comments.text for comments in test_dataset]
     test_y = [comments.rating for comments in test_dataset]
     precision_list = [0 for i in range(num_classes)]
@@ -302,17 +302,19 @@ def bootstrap_trend(dataset, classifier, num_classes):
     for sample_rate in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
         n_samples = int(sample_rate * len(train_dataset) + 1)
         train_xr = resample(train_dataset, n_samples=n_samples, random_state=157)
-        classifier_model = SentiCR(algo=classifier, training_data=train_xr)
-        predict_y = classifier_model.get_sentiment_polarity_collection(test_x)
-        metrics = {"individual": precision_recall_fscore_support(test_y, predict_y),
-                   "micro-average": precision_recall_fscore_support(test_y, predict_y, average="micro")}
-        print("Accuracy: %s, Precision: %s, Recall: %s, F1: %s" % (metrics['micro-average'][0], metrics['individual'][0],
-                                                                   metrics['individual'][1], metrics['individual'][2]))
-        precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
-        recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
-        f1_list = [x + y for x, y in zip(metrics['individual'][2], f1_list)]
-        accuracy_list.append(metrics['micro-average'][0])
-
+        try:
+            classifier_model = SentiCR(algo=classifier, training_data=train_xr)
+            predict_y = classifier_model.get_sentiment_polarity_collection(test_x)
+            metrics = {"individual": precision_recall_fscore_support(test_y, predict_y),
+                       "micro-average": precision_recall_fscore_support(test_y, predict_y, average="micro")}
+            print("Accuracy: %s, Precision: %s, Recall: %s, F1: %s" % (metrics['micro-average'][0], metrics['individual'][0],
+                                                                       metrics['individual'][1], metrics['individual'][2]))
+            precision_list = [x + y for x, y in zip(metrics['individual'][0], precision_list)]
+            recall_list = [x + y for x, y in zip(metrics['individual'][1], recall_list)]
+            f1_list = [x + y for x, y in zip(metrics['individual'][2], f1_list)]
+            accuracy_list.append(metrics['micro-average'][0])
+        except:
+            print("Accuracy: Unknown")
     print("Accuracies:", accuracy_list)
     print("Dataset sizes:", [int(sample_rate * len(train_dataset) + 1) for sample_rate in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]])
     print("Mean accuracy: %s Mean precision: %s, Mean recall: %s, Mean F1: %s" % (sum(accuracy_list)/9, [precision/9 for precision in precision_list],
@@ -369,19 +371,32 @@ if __name__ == '__main__':
     #     oracle_data.append(comments)
     #     oracle_y.append(sheet.cell(cell_num, 1).value)
 
-    data = list()
-    data_y = list()
+
     # raw_data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
     # raw_data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
-    data_1 = pd.read_csv("data/labelled/Gerrit.csv")
-    data_2 = pd.read_csv("data/labelled/JIRA.csv")
-    data_3 = pd.read_csv("data/labelled/StackOverflow2.csv", encoding='latin1')
-    # raw_data = pd.concat([data_1, data_2, data_3]).as_matrix()
-    # for item in raw_data:
-    #     comment = SentimentData(str(item[0]), item[1])
-    #     data.append(comment)
-    #     data_y.append(item[1])
+    iter = 0
+    data_1 = pd.read_csv("data/labelled/JIRA.csv")
+    data_2 = pd.read_csv("data/labelled/AppReviews.csv")
+    data_3 = pd.read_csv("data/labelled/Gerrit.csv")
+    data_4 = pd.read_csv("data/labelled/StackOverflowEmotions.csv", encoding='latin1')
+    data_5 = pd.read_csv("data/labelled/StackOverflowSentiments.csv", encoding='latin1')
+    data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1')
+    data_list = [data_1, data_2, data_3, data_4, data_5, data_6]
+    for dataset in data_list:
+        iter += 1
+        if iter == 1 or iter == 3:
+            num_classes = 2
+        else:
+            num_classes = 3
+        data = list()
+        data_y = list()
+        raw_data = dataset.as_matrix()
+        for item in raw_data:
+            comment = SentimentData(str(item[0]), item[1])
+            data.append(comment)
+            data_y.append(item[1])
+        data = np.array(data)
+        bootstrap_trend(data, data_y, classifier, num_classes=2)
 
-    # data = np.array(data)
     # cross_val(data, data_y, classifier, num_classes=2)
     # bootstrap_trend(data, classifier, num_classes=2)
