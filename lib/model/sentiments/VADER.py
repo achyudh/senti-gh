@@ -78,15 +78,15 @@ if __name__ == '__main__':
     for dataset in data_list:
         iter += 1
         if iter == 1 or iter == 3:
-            num_classes = 2
+            has_neutral = False
         else:
-            num_classes = 3
-
+            has_neutral = True
+        data = dataset.as_matrix()
         data_x = np.array([x for x in data[:,0]])
         data_y = np.array([int(x) for x in data[:,1]])
-        train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.2, random_state=157)
+        # train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.2, random_state=157)
 
     # print("Dataset loaded to memory. Size:", len(data_y))
-    metrics = evaluate(test_x, test_y, has_neutral=False)
-    print("Accuracy: %s, Precision: %s, Recall: %s, F1: %s" % (metrics['micro-average'][0], metrics['individual'][0],
-                                                               metrics['individual'][1], metrics['individual'][2]))
+        metrics = evaluate(data_x, data_y, has_neutral)
+        print("Accuracy: %s, Precision: %s, Recall: %s, F1: %s" % (metrics['micro-average'][0], metrics['individual'][0],
+                                                                   metrics['individual'][1], metrics['individual'][2]))
