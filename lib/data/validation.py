@@ -133,15 +133,16 @@ def plaintext_import(evaluate_y_path, predict_y_path):
 
 
 if __name__ == '__main__':
-    # data = pd.read_csv("data/labelled/Jira.csv").as_matrix()
-    # data = pd.read_csv("data/labelled/StackOverflow2.csv", encoding='latin1').as_matrix()
-    data_1 = pd.read_csv("data/labelled/Gerrit.csv")
-    data_2 = pd.read_csv("data/labelled/JIRA.csv")
-    data_3 = pd.read_csv("data/labelled/StackOverflowEmotions2.csv", encoding='latin1')
-    # data = pd.concat([data_1, data_2, data_3]).as_matrix()
+    # data = pd.read_csv("data/labelled/StackOverflowSentiments.csv").as_matrix()
+    # data = pd.read_csv("data/labelled/StackOverflowEmotions.csv", encoding='latin1').as_matrix()
+    # data_1 = pd.read_csv("data/labelled/Gerrit.csv")
+    # data_2 = pd.read_csv("data/labelled/JIRA.csv")
+    # data_3 = pd.read_csv("data/labelled/StackOverflowEmotions2.csv", encoding='latin1')
     # data_x = np.array([x.replace(",", " ") for x in data[:,0]])
     # data_y = np.array([int(x) for x in data[:,1]])
-    # stratified_kfold_export(data_x, data_y, dataset_name="Jira", csv_file=True)
+    # stratified_kfold_export(data_x, data_y, dataset_name="StackOverflowEmotions")
     # bootstrap_trend_export(data_x, data_y, dataset_name="Combined", csv_file=True)
-    metrics = plaintext_import("data/validation_splits/Combined_test_y.txt", "data/validation_splits/Predictions.csv")
-    print("Accuracy: %s Precision: %s, Recall: %s" % (metrics['micro-average'][0], metrics['individual'][0], metrics['individual'][1]))
+    # metrics = plaintext_import("data/validation_splits/Combined_test_y.txt", "data/validation_splits/Predictions.csv")
+    metrics = sentistrength_import("data/validation_splits/StackOverflowEmotions_data_y.txt", "data/validation_splits/results.txt", has_neutral=True)
+    print("Accuracy: %s, Precision: %s, Recall: %s, F1: %s" % (metrics['micro-average'][0], metrics['individual'][0],
+                                                               metrics['individual'][1], metrics['individual'][2]))
