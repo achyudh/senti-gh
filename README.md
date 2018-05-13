@@ -1,5 +1,5 @@
 # Senti-GH
-> Empirical modeling of developer sentiments by learning from user discussions on GitHub with deep neural networks.
+> A hierarchical deep learning model for supervised sentiment classification on diverse SE datasets
 
 ## Getting Started:
 
