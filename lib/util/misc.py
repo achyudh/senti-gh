@@ -1,3 +1,5 @@
+from tensorflow.python.keras.preprocessing.text import Tokenizer
+from statistics import median
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -37,7 +39,7 @@ def remove_duplicate_entries(dataset):
         json.dump(db, json_file)
 
 
-def plot_line_graph(arrays, x_label="Percentage of training set used", y_label="Accuracy", figsize=(8, 6), dpi=100,
+def plot_line_graph(arrays, x_label="Number of training samples", y_label="Accuracy", figsize=(8, 6), dpi=100,
                     ylim=(0.70, 1), filename="bootstrap_trend.png", xticks=(20, 30, 40, 50, 60, 70, 80, 90, 100)):
     plt.figure(figsize=figsize, dpi=dpi)
     plt.xticks(range(0, len(xticks)), xticks)
@@ -73,26 +75,43 @@ def denumerate_file(file_path):
             text_file.write(line)
 
 
+def average_word_count():
+    data_1 = pd.read_csv("data/labelled/JIRA.csv")
+    data_2 = pd.read_csv("data/labelled/AppReviews.csv")
+    data_3 = pd.read_csv("data/labelled/Gerrit.csv")
+    data_4 = pd.read_csv("data/labelled/StackOverflowEmotions.csv", encoding='latin1')
+    data_5 = pd.read_csv("data/labelled/StackOverflowSentiments.csv", encoding='latin1')
+    data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1')
+    data_list = [data_1, data_2, data_3, data_4, data_5, data_6]
+    for dataset in data_list:
+        data = dataset.as_matrix()
+        tokenizer = Tokenizer(filters='!"#$%&()*+,./:;<=>?@[\]^_`{|}~', lower=True)
+        tokenizer.fit_on_texts(data[:, 0])
+        sequences = tokenizer.texts_to_sequences(data[:, 0])
+        mean_seq_length = sum((len(seq) for seq in sequences))/len(sequences)
+        median_seq_length = max((len(seq) for seq in sequences))
+        print(mean_seq_length, median_seq_length)
+
+
 if __name__ == '__main__':
     plot_line_graph([
-        {"data": [0.7185185185185186, 0.7718518518518519, 0.7718518518518519, 0.7814814814814814, 0.802962962962963, 0.8014814814814815, 0.8133333333333334, 0.8185185185185185, 0.8237037037037037],
-         "label": "CNN"},
-        {"data": [0.7792592592592592, 0.7955555555555556, 0.7822222222222223, 0.802962962962963, 0.8, 0.8214814814814815, 0.8148148148148148, 0.8037037037037037, 0.8296296296296296],
-         "label": "Hi-CNN-BiLSTM"}8037037037037037
-    ])
-    # Other classifier accuracy trends:
-    # {"data": [0.7584269662921348, 0.7762172284644194, 0.7865168539325843, 0.7846441947565543, 0.8089887640449438,
-    #           0.799625468164794, 0.8061797752808989, 0.8239700374531835, 0.8192883895131086],
-    #  "label": "Naive Bayes (NLTK)"},
-    # {"data": [0.8332396477421773, 0.8332396477421773, 0.8332396477421773, 0.8332396477421773, 0.8332396477421773,
-    #           0.8332396477421773, 0.8332396477421773, 0.8332396477421773, 0.8332396477421773],
-    #  "label": "SentiStrength SE"},
-    # {"data": [0.8202247191011236, 0.8080524344569289, 0.8295880149812734, 0.8314606741573034, 0.8417602996254682,
-    #           0.8426966292134831, 0.8398876404494382, 0.8398876404494382, 0.8408239700374532],
-    #  "label": "SentiCR"},
-    # {"data": [0.8436329588014981, 0.8436329588014981, 0.8436329588014981, 0.8436329588014981, 0.8436329588014981,
-    #           0.8436329588014981, 0.8436329588014981, 0.8436329588014981, 0.8436329588014981],
-    #  "label": "VADER (NLTK)"},
-    # {"data": [0.8444819186809068, 0.8444819186809068, 0.8444819186809068, 0.8444819186809068, 0.8444819186809068,
-    #           0.8444819186809068, 0.8444819186809068, 0.8444819186809068, 0.8444819186809068],
-    #  "label": "SentiStrength"},
+        {"data":
+             [0.8273381294964028, 0.8669064748201439, 0.8705035971223022, 0.9064748201438849, 0.9136690647482014, 0.9172661870503597, 0.9136690647482014, 0.9136690647482014, 0.920863309352518],
+         "label": "Naive Bayes"},
+        {"data":
+             [0.7473118279569892, 0.7473118279569892, 0.7473118279569892, 0.7473118279569892, 0.7473118279569892,
+              0.7473118279569892, 0.7473118279569892, 0.7473118279569892, 0.7473118279569892],
+         "label": "VADER"},
+        {"data":
+             [0.9244604316546763, 0.935251798561151, 0.9316546762589928, 0.935251798561151, 0.9316546762589928,
+              0.9280575539568345, 0.9316546762589928, 0.9316546762589928, 0.9244604316546763],
+         "label": "Senti4SD"},
+        {"data":
+             [0.9028776978417267, 0.8812949640287769, 0.8884892086330936, 0.8633093525179856, 0.8776978417266187,
+              0.9028776978417267, 0.9028776978417267, 0.9136690647482014, 0.9100719424460432],
+         "label": "SentiCR"},
+        {"data":
+             [0.9532374100719424, 0.960431654676259, 0.9640287769784173, 0.9676258992805755, 0.9748201438848921,
+              0.9748201438848921, 0.9784172661870504, 0.9748201438848921, 0.9748201438848921],
+         "label": "Hi-CNN-LSTM"}
+    ], xticks=[130, 195, 260, 325, 389, 454, 519, 584, 649], filename="jira_trend.png", ylim=(0.60, 1))
