@@ -52,8 +52,8 @@ def custom_list(repo_list, num_pages=10, skip_existing=False):
 
 
 if __name__ == '__main__':
-    custom_list(repo_list=["tensorflow/tensorflow", "onivim/oni", "spring-projects/spring-framework"])
-    # custom_annotated('data/labelled/pull_requests/tensorflow.csv', full_repo_name="tensorflow/tensorflow")
+    # custom_list(repo_list=["tensorflow/tensorflow", "onivim/oni", "spring-projects/spring-framework"])
+    custom_annotated('data/labelled/pull_requests/oni.csv', full_repo_name="onivim/oni")
     # repo_reaper('data/repo_reaper/reaper_100.csv', num_pages=10, skip_existing=True, is_list=True)
     # repo_reaper('data/repo_reaper/utility.csv', num_pages=10, skip_existing=True)
     # repo_reaper('data/repo_reaper/validation.csv', num_pages=10, skip_existing=True)

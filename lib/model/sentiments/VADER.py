@@ -68,11 +68,11 @@ def evaluate_multiple(data_1, data_2, data_3, has_neutral=False):
 
 if __name__ == '__main__':
     data_1 = pd.read_csv("data/labelled/JIRA.csv")
-    data_2 = pd.read_csv("data/labelled/AppReviews.csv")
+    data_2 = pd.read_csv("data/labelled/AppReviews2.csv")
     data_3 = pd.read_csv("data/labelled/Gerrit.csv")
-    data_4 = pd.read_csv("data/labelled/StackOverflowEmotions.csv", encoding='latin1')
-    data_5 = pd.read_csv("data/labelled/StackOverflowSentiments.csv", encoding='latin1')
-    data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1')
+    data_4 = pd.read_csv("data/labelled/StackOverflowEmotions2.csv", encoding='latin1')
+    data_5 = pd.read_csv("data/labelled/StackOverflowSentiments2.csv", encoding='latin1')
+    data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries2.csv", encoding='latin1')
     data_list = [data_1, data_2, data_3, data_4, data_5, data_6]
     iter = 0
     for dataset in data_list:
@@ -84,9 +84,7 @@ if __name__ == '__main__':
         data = dataset.as_matrix()
         data_x = np.array([x for x in data[:,0]])
         data_y = np.array([int(x) for x in data[:,1]])
-        # train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.2, random_state=157)
-
-    # print("Dataset loaded to memory. Size:", len(data_y))
-        metrics = evaluate(data_x, data_y, has_neutral)
+        train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.2, random_state=157)
+        metrics = evaluate(test_x, test_y, has_neutral)
         print("Accuracy: %s, Precision: %s, Recall: %s, F1: %s" % (metrics['micro-average'][0], metrics['individual'][0],
                                                                    metrics['individual'][1], metrics['individual'][2]))

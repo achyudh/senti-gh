@@ -117,20 +117,21 @@ if __name__ == '__main__':
     # data = pd.read_csv("data/labelled/JIRA.csv").as_matrix()
     # data = pd.read_csv("data/labelled/StackOverflow.csv", encoding='latin1').as_matrix()
     data_1 = pd.read_csv("data/labelled/JIRA.csv")
-    data_2 = pd.read_csv("data/labelled/AppReviews.csv")
+    data_2 = pd.read_csv("data/labelled/AppReviews2.csv")
     data_3 = pd.read_csv("data/labelled/Gerrit.csv")
-    data_4 = pd.read_csv("data/labelled/StackOverflowEmotions.csv", encoding='latin1')
-    data_5 = pd.read_csv("data/labelled/StackOverflowSentiments.csv", encoding='latin1')
-    data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1')
+    data_4 = pd.read_csv("data/labelled/StackOverflowEmotions2.csv", encoding='latin1')
+    data_5 = pd.read_csv("data/labelled/StackOverflowSentiments2.csv", encoding='latin1')
+    data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries2.csv", encoding='latin1')
     data_list = [data_1, data_2, data_3, data_4, data_5, data_6]
     iter = 0
-    for dataset in data_list:
-        iter += 1
-        if iter == 1 or iter == 3:
-            num_classes = 2
-        else:
-            num_classes = 3
-        data = dataset.as_matrix()
-        data_x = np.array([x.lower().split() for x in data[:,0]])
-        data_y = np.array([int(x) for x in data[:,1]])
-        bootstrap_trend(data_x, data_y, num_classes)
+    cross_dataset(data_list, num_classes)
+    # for dataset in data_list:
+    #     iter += 1
+    #     if iter == 1 or iter == 3:
+    #         num_classes = 2
+    #     else:
+    #         num_classes = 3
+    #     data = dataset.as_matrix()
+    #     data_x = np.array([x.lower().split() for x in data[:,0]])
+    #     data_y = np.array([int(x) for x in data[:,1]])
+    #     bootstrap_trend(data_x, data_y, num_classes)

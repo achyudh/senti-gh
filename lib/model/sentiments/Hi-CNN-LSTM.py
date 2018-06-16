@@ -9,6 +9,7 @@ from tensorflow.python.keras.models import Model
 from lib.util import preprocessing
 import tensorflow as tf
 import pandas as pd
+import numpy as np
 import time
 
 
@@ -23,14 +24,13 @@ def train(train_x, train_y, evaluate_x, evaluate_y, embedding_map, embedding_dim
         # l_conv2 = Conv1D(150, 3, activation='relu')(l_pool1)
         l_pool2 = GlobalMaxPool1D()(l_conv1)
         l_dense1 = Dense(80, activation='relu')(l_pool2)
-        encoder_1 = Model(sequence_input_1, l_dense1)
+        l_dropout1 = Dropout(0.4)(l_dense1)
+        encoder_1 = Model(sequence_input_1, l_dropout1)
 
         sequence_input_2 = Input(shape=(max_sequences,max_sequence_len), dtype='int32')
         encoder_2 = TimeDistributed(encoder_1)(sequence_input_2)
         l_lstm_2 = Bidirectional(LSTM(25, dropout=0.2, recurrent_dropout=0.2))(encoder_2)
 
-        # l_dense1 = Dense(20, activation='relu')(l_lstm)
-        # l_dropout1 = Dropout(0.2)(l_dense1)
         preds = Dense(num_classes, activation='softmax')(l_lstm_2)
         model = Model(sequence_input_2, preds)
 
@@ -149,24 +149,26 @@ if __name__ == '__main__':
     # data = pd.read_csv("data/labelled/Gerrit.csv").as_matrix()
     # data = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1').as_matrix()
     data_1 = pd.read_csv("data/labelled/JIRA.csv")
-    data_2 = pd.read_csv("data/labelled/AppReviews.csv")
+    data_2 = pd.read_csv("data/labelled/AppReviews2.csv")
     data_3 = pd.read_csv("data/labelled/Gerrit.csv")
-    data_4 = pd.read_csv("data/labelled/StackOverflowEmotions.csv", encoding='latin1')
-    data_5 = pd.read_csv("data/labelled/StackOverflowSentiments.csv", encoding='latin1')
-    data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries.csv", encoding='latin1')
+    data_4 = pd.read_csv("data/labelled/StackOverflowEmotions2.csv", encoding='latin1')
+    data_5 = pd.read_csv("data/labelled/StackOverflowSentiments2.csv", encoding='latin1')
+    data_6 = pd.read_csv("data/labelled/StackOverflowJavaLibraries2.csv", encoding='latin1')
     data_list = [data_1, data_2, data_3, data_4, data_5, data_6]
-    iter = 0
-    for dataset in data_list:
-        iter += 1
-        if iter == 1 or iter == 3:
-            num_classes = 2
-        else:
-            num_classes = 3
-        data = dataset.as_matrix()
-        data_x, data_y_cat, tokenizer, max_sequence_len, max_sequences = preprocessing.make_hierarchical_network_ready(data, num_classes)
-        print("Dataset loaded to memory. Size:", len(data_y_cat))
-        embedding_map = word2vec.embedding_matrix(tokenizer.word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
-        bootstrap_trend(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, max_sequences, num_classes)
-
-    # cross_val(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, max_sequences,num_classes, n_splits=10)
-    # cross_dataset(data_list, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes)
+    # iter = 0
+    # for dataset in data_list:
+    #     iter += 1
+    #     if iter == 1 or iter == 3:
+    #         num_classes = 3
+    #     else:
+    #         num_classes = 3
+    #     data = dataset.as_matrix()
+    #     data_x, data_y_cat, tokenizer, max_sequence_len, max_sequences = preprocessing.make_hierarchical_network_ready(data, num_classes)
+    #     print("Dataset loaded to memory. Size:", len(data_y_cat))
+    #     embedding_map = word2vec.embedding_matrix(tokenizer.word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
+    #     bootstrap_trend(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, max_sequences, num_classes)
+    #     cross_val(data_x, data_y_cat, embedding_map, embedding_dim, max_sequence_len, max_sequences,num_classes, n_splits=10)
+    data = pd.concat(data_list).as_matrix()
+    data_x, data_y_cat, tokenizer, max_sequence_len, max_sequences = preprocessing.make_hierarchical_network_ready(data, num_classes)
+    embedding_map = word2vec.embedding_matrix(tokenizer.word_index, model_path="data/embedding/word2vec/googlenews_size300.bin", binary=True)
+    cross_dataset(data_list, embedding_map, embedding_dim, tokenizer, max_sequence_len, max_sequences, num_classes)
