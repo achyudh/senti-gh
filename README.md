@@ -13,7 +13,7 @@ The data being used for this project is stored in a separate repository here: ht
 When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change. Ensure any install or build dependencies are removed before the end of the layer when doing a build. Update the README.md with details of changes to the interface, this includes new environment variables, exposed ports, useful file locations and container parameters.
 
 ## License:
-This project is licensed under the GNU General Public License v3.0 - see the LICENSE.md file for details
+This project is licensed under the GNU General Public License v3.0 - see the LICENSE.md file for details.
 
 ## References:
 * GloVe: Global Vectors for Word Representation: https://nlp.stanford.edu/projects/glove/. From Pennington, Jeffrey, Richard Socher, and Christopher Manning. "Glove: Global vectors for word representation." Proceedings of the 2014 conference on empirical methods in natural language processing (EMNLP). 2014.
