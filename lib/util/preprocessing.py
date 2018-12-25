@@ -61,7 +61,7 @@ def to_extended_categorical(y, num_classes=None):
 def make_hierarchical_network_ready(data, num_classes, tokenizer=None, max_sequence_len=200, max_sequences=20,
                                     enforce_max_len=False, filter_words=False):
     temp_data = list()
-    for seq in data[:,0]:
+    for seq in data[:, 0]:
         temp_data.append(' '.join(seq.split()))
     if tokenizer is None:
         tokenizer = Tokenizer(filters='!"#$%&()*+,./:;<=>?@[\]^_`{|}~', lower=True)
@@ -98,11 +98,12 @@ def make_hierarchical_network_ready(data, num_classes, tokenizer=None, max_seque
                 word_tokens = text_to_word_sequence(' '.join(sentence.split()), filters='!"#$%&()*+,./:;<=>?@[\]^_`{|}~', lower=True)
                 for word in word_tokens:
                     if k < max_sequence_len:
-                        if not filter_words or tokenizer.word_index[word] not in index_filter:
-                                data_x[i, j, k] = tokenizer.word_index[word]
+                        if word in tokenizer.word_index:
+                            if not filter_words or tokenizer.word_index[word] not in index_filter:
+                                    data_x[i, j, k] = tokenizer.word_index[word]
                         k = k + 1
 
-    data_y = [int(x) for x in data[:,1]]
+    data_y = [int(x) for x in data[:, 1]]
     data_y_cat = to_categorical(data_y, num_classes=num_classes)
     return data_x, data_y_cat, tokenizer, max_sequence_len, max_sequences
 
@@ -132,9 +133,10 @@ def make_network_ready(data, num_classes, tokenizer=None, max_sequence_len=400, 
     if not enforce_max_len:
         max_sequence_len = min(max_sequence_len, max(seq_lengths))
     data_x = pad_sequences(sequences, maxlen=max_sequence_len)
-    data_y = [int(x) for x in data[:,1]]
+    data_y = [int(x) for x in data[:, 1]]
     data_y_cat = to_categorical(data_y, num_classes=num_classes)
     return data_x, data_y_cat, tokenizer, max_sequence_len
+
 
 if __name__ == '__main__':
     print(to_extended_categorical([1, 2, -1, 0, 1, 0, 2, 0, -1], 3))
