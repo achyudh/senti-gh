@@ -52,6 +52,7 @@ if __name__ == '__main__':
         raise Exception('Unsupported model')
 
     if args.transfer_learn:
+        # source_data = pd.read_csv('data/labelled/StackOverflowSentiments.csv', encoding='latin1')
         source_data = pd.read_csv('data/labelled/IMDB.tsv', delimiter='\t', names=raw_data.columns.values)
         _, _, tokenizer, max_sequence_len, max_sequences = preprocessing.make_hierarchical_network_ready(
             pd.concat([source_data, raw_data]).as_matrix(),
@@ -83,10 +84,7 @@ if __name__ == '__main__':
     else:
         data_x, data_y_cat, tokenizer, max_sequence_len, max_sequences = preprocessing.make_hierarchical_network_ready(
             raw_data.as_matrix(),
-            model_config.num_classes,
-            max_sequence_len=150,
-            max_sequences=15,
-            enforce_max_len=True)
+            model_config.num_classes)
         embedding_map = word2vec.embedding_matrix(tokenizer.word_index,
                                                   model_path='data/embedding/word2vec/googlenews_size300.bin',
                                                   binary=True)

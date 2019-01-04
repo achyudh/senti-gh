@@ -10,10 +10,11 @@ def get_args():
     parser.add_argument('--gpu', type=int, default=0)  # If the value is -1, use CPU
     parser.add_argument('--epochs', type=int, default=20)
     parser.add_argument('--batch-size', type=int, default=128)
+    parser.add_argument('--bottleneck-dim', type=int, default=80)
     parser.add_argument('--hidden-dim', type=int, default=64)
     parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--seed', type=int, default=3435)
-    parser.add_argument('--patience', type=int, default=4)
+    parser.add_argument('--patience', type=int, default=5)
     parser.add_argument('--load-model', action='store_true')
     parser.add_argument('--transfer-learn', action='store_true')
     parser.add_argument('--load-path', type=str, default='data/checkpoints/HiCNNBiLSTM-IMDB.hdf5')
