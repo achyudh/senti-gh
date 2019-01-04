@@ -5,9 +5,10 @@ from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.utils import resample
 from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint
-from tensorflow.python.keras.layers import Conv1D, MaxPooling1D, Dropout, GlobalMaxPool1D
+from tensorflow.python.keras.layers import Conv1D, Dropout, GlobalMaxPool1D, Concatenate
 from tensorflow.python.keras.layers import Dense, Input, Embedding, LSTM, Bidirectional, TimeDistributed
 from tensorflow.python.keras.models import Model
+from tensorflow.python.keras.optimizers import Adam
 
 
 def initialize(embedding_map, tokenizer, config):
@@ -17,11 +18,14 @@ def initialize(embedding_map, tokenizer, config):
                                   trainable=False)
     sequence_input_1 = Input(shape=(config.max_sequence_len,), dtype='int32')
     embedded_sequences_1 = embedding_layer_1(sequence_input_1)
-    l_conv1 = Conv1D(150, 5, activation='relu', padding='valid')(embedded_sequences_1)
-    l_pool1 = MaxPooling1D(5)(l_conv1)
-    l_conv2 = Conv1D(150, 3, activation='relu')(l_pool1)
+    l_conv1 = Conv1D(100, 5, activation='relu', padding='valid')(embedded_sequences_1)
+    l_pool1 = GlobalMaxPool1D()(l_conv1)
+    l_conv2 = Conv1D(100, 4, activation='relu', padding='valid')(embedded_sequences_1)
     l_pool2 = GlobalMaxPool1D()(l_conv2)
-    l_dense1 = Dense(80, activation='relu')(l_pool2)
+    l_conv3 = Conv1D(100, 3, activation='relu', padding='valid')(embedded_sequences_1)
+    l_pool3 = GlobalMaxPool1D()(l_conv3)
+    l_concat1 = Concatenate()([l_pool1, l_pool2, l_pool3])
+    l_dense1 = Dense(config.bottleneck_dim, activation='relu')(l_concat1)
     l_dropout1 = Dropout(config.dropout_rate)(l_dense1)
     encoder_1 = Model(sequence_input_1, l_dropout1)
 
@@ -30,13 +34,14 @@ def initialize(embedding_map, tokenizer, config):
     l_lstm_2 = Bidirectional(LSTM(config.hidden_dim, dropout=0.2, recurrent_dropout=0.2))(encoder_2)
     preds = Dense(config.num_classes, activation='softmax')(l_lstm_2)
     model = Model(sequence_input_2, preds)
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    optim = Adam(lr=config.lr, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    model.compile(loss='categorical_crossentropy', optimizer=optim, metrics=['accuracy'])
     model.summary()
     return model
 
 
 def train(model, train_x, train_y, evaluate_x, evaluate_y, config):
-    early_stopping_callback = EarlyStopping(patience=5, monitor='val_acc')
+    early_stopping_callback = EarlyStopping(patience=config.patience, monitor='val_acc')
     checkpoint_callback = ModelCheckpoint(filepath=os.path.join(config.checkpoint_path, "HiCNNBiLSTM-%s.hdf5" % config.dataset),
                                           monitor='val_acc',
                                           verbose=1,
@@ -77,9 +82,6 @@ def cross_val(data_x, data_y, embedding_map, tokenizer, config, n_splits=5):
         model = initialize(embedding_map, tokenizer, config)
         if config.load_model:
             model.load_weights(os.path.join(config.load_path))
-        if config.freeze_layers > 0:
-            for layer in model.layers[:config.freeze_layers]:
-                layer.trainable = False
 
         train_start_time = time.time()
         model = train(model, data_x[train_index], data_y[train_index], data_x[test_index], data_y[test_index], config)
